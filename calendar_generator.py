@@ -6,6 +6,16 @@ import overlap_detector
 
 FACILITIES = ["Church", "Chapel", "Cry Room", "Room A", "Room B", "JP2", "Parking Lot"]
 
+FACILITY_BILINGUAL = {
+    "Church": "Church<br>대성당",
+    "Chapel": "Chapel<br>소성당",
+    "Cry Room": "Cry Room<br>유아방",
+    "Room A": "Room A<br>룸 A",
+    "Room B": "Room B<br>룸 B",
+    "JP2": "JP2<br>체육관",
+    "Parking Lot": "Parking Lot<br>주차장"
+}
+
 MONTHS_LIST = [
     (2026, 8, "August 2026"),
     (2026, 9, "September 2026"),
@@ -473,7 +483,7 @@ def generate_calendar_html():
                 <thead>
                     <tr>
                         <th>Day</th>
-                        {"".join(f"<th>{room}</th>" for room in FACILITIES)}
+                        {"".join(f"<th>{FACILITY_BILINGUAL.get(room, room)}</th>" for room in FACILITIES)}
                     </tr>
                 </thead>
                 <tbody id="calendarGrid"></tbody>
