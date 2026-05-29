@@ -58,14 +58,15 @@ def generate_calendar_html():
         database[y][m][d][room].append({
             "group": group,
             "event": name,
-            "time": time_str
+            "time": time_str,
+            "start_time_sort": start_dt.strftime('%H:%M')
         })
         
     for y in database:
         for m in database[y]:
             for d in database[y][m]:
                 for room in database[y][m][d]:
-                    database[y][m][d][room].sort(key=lambda b: b["time"])
+                    database[y][m][d][room].sort(key=lambda b: b["start_time_sort"])
                     
     monthly_grids = []
     
