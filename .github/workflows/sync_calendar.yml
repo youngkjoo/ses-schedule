@@ -1,0 +1,38 @@
+name: Sync Facility Calendar
+
+on:
+  repository_dispatch:
+    types: [sync-calendar]
+  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
+  schedule:
+    - cron: '0 */6 * * *' # Backup schedule: Run every 6 hours
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+          
+      - name: Run Calendar Generator
+        env:
+          WEB_APP_URL: ${{ secrets.WEB_APP_URL }}
+        run: |
+          # Write the private URL to config.json dynamically
+          echo "{\"web_app_url\":\"$WEB_APP_URL\"}" > config.json
+          python3 calendar_generator.py
+          # Clean up config.json so it is never committed
+          rm config.json
+          
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          # Commit and push only if there are actual layout or data updates
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-sync calendar from Google Sheet" && git push)

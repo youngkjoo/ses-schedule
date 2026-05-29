@@ -1,73 +1,108 @@
-# TVKCC Facility Scheduler & Calendar Automation (8/2026 - 7/2027)
+# TVKCC Facility Scheduler & Cloud Autopilot Automation (8/2026 - 7/2027)
 
-A robust, enterprise-grade Python tool that automates the ingestion, overlap checking, and Google Sheets synchronization of church facility requests for the 8/2026 - 7/2027 planning year. 
+A robust, enterprise-grade cloud automation system that coordinates the ingestion, overlap checking, layout formatting, and web publishing of church facility requests for the 8/2026 - 7/2027 planning year.
 
-It generates an **interactive, premium, glassmorphic calendar view (`index.html`)** that is optimized to be hosted for free on **GitHub Pages** so your community members can see reservations in real-time.
-
----
-
-## 🛠️ System Architecture
-
-* **`scheduler_engine.py`**: Expands natural language and recurring scheduling patterns (e.g. "Every 2nd Sun", "8/9부터 연말까지 매주일"), manages room-specific exclusions, translates Korean facility requests to English, and standardizes date representations.
-* **`overlap_detector.py`**: Compares exact start/end datetime intervals for facilities, permitting back-to-back bookings with zero buffer times.
-* **`sheets_client.py`**: Connects via a Google Apps Script Web App to query and overwrite the Google Sheet, utilizing rectangular padding to prevent cell-range mismatch errors. It gracefully falls back to a local offline CSV on your disk if no API endpoint is configured.
-* **`main.py`**: The CLI orchestrator. It checks overlaps, appends events under their correct layout headers (Liturgy vs. Community Events), and regenerates the calendar HTML in real-time.
-* **`ingest.py`**: Multi-lingual (English and Korean) terminal utility allowing you to paste raw, unstructured requests straight from your email or messaging threads to parse and schedule them instantly.
-* **`index.html`**: The interactive public calendar grid displaying a month-by-month calendar view with sticky headers, weekend highlighting, search filters, and group dropdown selectors.
+It features a **100% Serverless Autopilot Pipeline** that lets you check, book, and publish schedules directly from your smartphone's browser from anywhere in the world—with **$0.00 hosting costs** and **zero computer dependency**.
 
 ---
 
-## 🚀 Easy Ingestion Guide
+## 🌐 System Architecture & Cloud Pipelines
 
-### Method 1: Direct Chat Ingestion (Recommended)
-Simply copy and paste raw facility requests (in English or Korean) directly into your AI assistant chat window. The assistant will parse, translate, check for overlaps, push it to Google Sheets, and update the calendar view automatically!
+The system utilizes a high-efficiency division of labor between two cloud environments:
 
-### Method 2: Local Terminal Paste
-Run the interactive parser script from the root of this repository:
-```bash
-python3 ingest.py
-```
-Paste the entire email/message request directly into the prompt, press `Ctrl+D`, and the script will handle the rest!
-
----
-
-## 🧪 Testing & Validation
-
-The codebase features a comprehensive unit test suite covering date pre-processing, room mapping, overnight bookings, exclusions, and conflict detection.
-
-To execute the tests:
-```bash
-python3 tests.py
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Admin as Admin (Phone / PC)
+    participant Google as Google Apps Script (Sheet Cloud)
+    participant GitHub as GitHub Actions (VM Runner)
+    participant Site as GitHub Pages Website
+    
+    Admin->>Google: Paste raw request in Mobile UI
+    Note over Google: Instantly parses and<br/>checks overlaps in 1s
+    alt Overlaps Found
+        Google-->>Admin: Show detailed conflict warnings
+    else Clean Booking
+        Google->>Google: Write to Google Sheet (Auto-positioned)
+        Google-->>Admin: Show "Booked Successfully!"
+        Google->>GitHub: Trigger repository_dispatch (Webhook)
+        Note over GitHub: Spins up temporary Ubuntu VM
+        GitHub->>GitHub: Run calendar_generator.py in cloud
+        GitHub->>Site: Commit & Push index.html
+        Note over Site: Rebuilds public calendar in 30s
+    end
 ```
 
+### 1. Google Sheets & Apps Script (The Brain)
+* **Instant Overlap Checking**: Parses unstructured requests (Korean/English) and maps facilities (e.g. Gym ➡️ JP2). It expands recurring dates and validates them in the cloud, giving you **instant (1–2 seconds) feedback** on your phone.
+* **Layout Formatting**: Automatically groups liturgy events under the "TVKCC Liturgy" header and other groups under "TVKCC Community Events".
+* **The Webhook**: After a clean booking is saved, Apps Script makes an HTTP POST request to GitHub's API to trigger a deployment.
+
+### 2. GitHub Actions & Pages (The Publisher)
+* **On-Demand VM**: GitHub spins up a free virtual server whenever it receives the Apps Script webhook.
+* **Calendar Generation**: The VM runs `calendar_generator.py` (written in Python) in the cloud, securely loading your spreadsheet's Web App URL from GitHub Secrets, compiles the new data, and overwrites the public `index.html` calendar grid.
+* **Hosting**: The responsive calendar is served to your community members for free at **`https://youngkjoo.github.io/ses-schedule/`**!
+
 ---
 
-## 🌐 Publishing the Calendar to GitHub Pages
+## 🛠️ Autopilot Setup Instructions
 
-To publish the calendar so your community members can view it on the web:
+Follow these steps to link your Google Sheet and GitHub account securely:
 
-1. **Initialize Git & Commit**:
-   ```bash
-   git init
-   git add .
-   git commit -m "Initialize TVKCC Facility Scheduler & Calendar"
-   ```
-2. **Push to GitHub**:
-   * Create a new repository on GitHub (e.g., `ses-schedule`).
-   * Add the remote origin and push your main branch:
-     ```bash
-     git remote add origin https://github.com/YOUR-USERNAME/YOUR-REPO-NAME.git
-     git branch -M main
-     git push -u origin main
-     ```
-3. **Enable GitHub Pages**:
-   * Go to your repository on GitHub.
-   * Click **Settings** ➡️ **Pages** (in the left-hand menu).
-   * Under **Build and deployment**:
-     * Set **Source** to `Deploy from a branch`.
-     * Set **Branch** to `main` and Folder to `/` (root).
-     * Click **Save**.
-4. **Access the Calendar**:
-   * GitHub will deploy the page within a couple of minutes!
-   * The calendar will be live at: **`https://YOUR-USERNAME.github.io/YOUR-REPO-NAME/`**
-   * Whenever you add a request locally and push it (`git add index.html && git commit -m "Update calendar" && git push`), the public calendar will update automatically!
+### Step 1: Add your Spreadsheet URL to GitHub Secrets
+1. Go to your GitHub repository: [github.com/youngkjoo/ses-schedule](https://github.com/youngkjoo/ses-schedule)
+2. Select **Settings** ➡️ **Secrets and variables** (left sidebar) ➡️ **Actions**.
+3. Click the green **New repository secret** button.
+4. Set the following fields:
+   * **Name**: `WEB_APP_URL`
+   * **Value**: *Your Google Apps Script Web App URL* (starts with `https://script.google.com/macros/s/...`)
+5. Click **Add secret**.
+
+---
+
+### Step 2: Create a GitHub Personal Access Token (PAT)
+To allow your Google Sheet to trigger the GitHub cloud VM, you need to create a secure access token:
+1. Click your profile picture (top right of GitHub) ➡️ **Settings** ➡️ **Developer settings** (bottom left sidebar).
+2. Select **Personal access tokens** ➡️ **Tokens (classic)**.
+3. Click **Generate new token** ➡️ **Generate new token (classic)**.
+4. Set the following:
+   * **Note**: `Google Sheet Autopilot Webhook`
+   * **Expiration**: `No expiration` (recommended so it stays active)
+   * **Scopes**: Check the **`repo`** checkbox (this is the only permission needed).
+5. Click **Generate token** and **copy the token immediately** (it will look like `ghp_...`). *You won't see it again!*
+
+---
+
+### Step 3: Save the Access Token in your Google Sheet
+1. Open your Google Sheet, and select **Extensions** ➡️ **Apps Script**.
+2. Click the gear icon (**Project Settings**) in the left sidebar.
+3. Scroll down to **Script Properties** and click **Add script property**.
+4. Set the following:
+   * **Property**: `GITHUB_PAT`
+   * **Value**: *Paste the Personal Access Token (`ghp_...`) you copied in Step 2.*
+5. Click **Save script properties**.
+
+*(By saving your token as a Script Property, it is stored securely in Google's cloud and is completely hidden from the code itself).*
+
+---
+
+## 🧪 Local Testing (Optional Reference)
+
+If you ever want to run checks or sync data manually on your MacBook:
+
+* **Ingest Raw Text locally**:
+  ```bash
+  python3 ingest.py
+  ```
+* **Verify Overlaps manually**:
+  ```bash
+  python3 main.py check --group "Sunday School" --event "Sports" --dates "Every Sat" --time "5 PM - 9 PM" --room "JP2"
+  ```
+* **Add Bookings manually**:
+  ```bash
+  python3 main.py add --group "Sunday School" --event "Sports" --dates "Every Sat" --time "5 PM - 9 PM" --room "JP2"
+  ```
+* **Run Unit Tests**:
+  ```bash
+  python3 tests.py
+  ```
