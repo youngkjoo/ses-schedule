@@ -40,6 +40,8 @@ class TestSchedulerEngine(unittest.TestCase):
         # Test Korean ordinals:
         self.assertEqual(preprocess_korean_dates("매달 3번째 주일"), "Every 3rd Sunday")
         self.assertEqual(preprocess_korean_dates("매월 첫째 토요일"), "Every 1st Saturday")
+        self.assertEqual(preprocess_korean_dates("매달 1,3,4번째 주일"), "Every 1st, 3rd & 4th Sunday")
+        self.assertEqual(preprocess_korean_dates("매달 첫째, 셋째 주일"), "Every 1st & 3rd Sunday")
         
         # Test full date expansion:
         # 8/9/2026 is Sunday, 12/27/2026 is Sunday. There should be exactly 21 Sundays between these two dates.

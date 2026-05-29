@@ -83,18 +83,50 @@ def preprocess_korean_dates(dates_str):
     if end_match:
         end_date = end_match.group(1)
         
-    # Translate ordinals
+    # Translate ordinals (including multiple ordinals like 1,3,4번째 or 첫째, 셋째 주일)
+    s_clean_ord = s.lower()
+    s_clean_ord = s_clean_ord.replace("첫번째", "1").replace("첫째", "1").replace("첫", "1")
+    s_clean_ord = s_clean_ord.replace("두번째", "2").replace("둘째", "2")
+    s_clean_ord = s_clean_ord.replace("세번째", "3").replace("셋째", "3")
+    s_clean_ord = s_clean_ord.replace("네번째", "4").replace("넷째", "4")
+    
+    # Remove dates to prevent conflict with year/month/day digits
+    s_no_dates = re.sub(r"\d+/\d+", "", s_clean_ord)
+    s_no_dates = re.sub(r"\d+년|\d+월|\d+일", "", s_no_dates)
+    
+    ordinal_list = []
+    if "마지막" in s_no_dates:
+        ordinal_list.append("last")
+        
+    digits = re.findall(r"\d+", s_no_dates)
+    for d_str in digits:
+        d = int(d_str)
+        if d == 1 and "1st" not in ordinal_list:
+            ordinal_list.append("1st")
+        elif d == 2 and "2nd" not in ordinal_list:
+            ordinal_list.append("2nd")
+        elif d == 3 and "3rd" not in ordinal_list:
+            ordinal_list.append("3rd")
+        elif d == 4 and "4th" not in ordinal_list:
+            ordinal_list.append("4th")
+            
+    # Sort ordinals numerically
+    def sort_key(ord_str):
+        if ord_str == "1st": return 1
+        if ord_str == "2nd": return 2
+        if ord_str == "3rd": return 3
+        if ord_str == "4th": return 4
+        return 5 # last
+        
+    ordinal_list.sort(key=sort_key)
+    
     ordinal = ""
-    if "첫번째" in s or "첫째" in s or "1번째" in s:
-        ordinal = "1st "
-    elif "두번째" in s or "둘째" in s or "2번째" in s:
-        ordinal = "2nd "
-    elif "세번째" in s or "셋째" in s or "3번째" in s:
-        ordinal = "3rd "
-    elif "네번째" in s or "넷째" in s or "4번째" in s:
-        ordinal = "4th "
-    elif "마지막" in s:
-        ordinal = "last "
+    if ordinal_list:
+        if len(ordinal_list) == 1:
+            ordinal = f"{ordinal_list[0]} "
+        else:
+            last = ordinal_list.pop()
+            ordinal = ", ".join(ordinal_list) + f" & {last} "
 
     # Determine days of week (strip recurring prefixes first to avoid matching "월" inside "매월")
     s_clean_days = s.replace("요일", "").replace("매주", "").replace("매월", "").replace("매달", "").replace("매", "")
