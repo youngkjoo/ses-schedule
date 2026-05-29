@@ -640,7 +640,9 @@ def generate_calendar_html():
 </html>
 """
     
-    output_path = "/Users/youngjoo/Vibe/ses-schedule/index.html"
+    import os
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    output_path = os.path.join(script_dir, "index.html")
     try:
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(html_content)
