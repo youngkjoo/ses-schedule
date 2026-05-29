@@ -1,0 +1,9 @@
+# Private Credentials / API endpoints
+config.json
+
+# Python Cache
+__pycache__/
+*.pyc
+.pytest_cache/
+*.swp
+.DS_Store
