@@ -37,6 +37,10 @@ class TestSchedulerEngine(unittest.TestCase):
         preprocessed = preprocess_korean_dates("8/9 부터 연말까지 매주일")
         self.assertEqual(preprocessed, "Every Sunday (8/9 - 12/31/2026)")
         
+        # Test Korean ordinals:
+        self.assertEqual(preprocess_korean_dates("매달 3번째 주일"), "Every 3rd Sunday")
+        self.assertEqual(preprocess_korean_dates("매월 첫째 토요일"), "Every 1st Saturday")
+        
         # Test full date expansion:
         # 8/9/2026 is Sunday, 12/27/2026 is Sunday. There should be exactly 21 Sundays between these two dates.
         dates_expanded = expand_dates("8/9 부터 연말까지 매주일")
@@ -49,6 +53,11 @@ class TestSchedulerEngine(unittest.TestCase):
         self.assertEqual(parse_time_block("9:30 AM - 11 AM"), (9, 30, 11, 0, False))
         self.assertEqual(parse_time_block("2 PM - 11:55 PM"), (14, 0, 23, 55, False))
         self.assertEqual(parse_time_block("9:00 PM - 7:00 AM"), (21, 0, 7, 0, True))
+        
+        # Test Korean time range normalization:
+        from scheduler_engine import parse_time_string
+        self.assertEqual(parse_time_string("오후 12 - 1시"), [(12, 0, 13, 0, False)])
+        self.assertEqual(parse_time_string("오전 10 - 12시"), [(10, 0, 12, 0, False)])
 
     def test_single_date_parsing(self):
         self.assertEqual(parse_single_date("8/15/2026"), date(2026, 8, 15))

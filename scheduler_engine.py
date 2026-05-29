@@ -83,8 +83,21 @@ def preprocess_korean_dates(dates_str):
     if end_match:
         end_date = end_match.group(1)
         
-    # Determine days of week
-    s_clean_days = s.replace("요일", "")
+    # Translate ordinals
+    ordinal = ""
+    if "첫번째" in s or "첫째" in s or "1번째" in s:
+        ordinal = "1st "
+    elif "두번째" in s or "둘째" in s or "2번째" in s:
+        ordinal = "2nd "
+    elif "세번째" in s or "셋째" in s or "3번째" in s:
+        ordinal = "3rd "
+    elif "네번째" in s or "넷째" in s or "4번째" in s:
+        ordinal = "4th "
+    elif "마지막" in s:
+        ordinal = "last "
+
+    # Determine days of week (strip recurring prefixes first to avoid matching "월" inside "매월")
+    s_clean_days = s.replace("요일", "").replace("매주", "").replace("매월", "").replace("매달", "").replace("매", "")
     days = []
     if "일" in s_clean_days or "주일" in s_clean_days:
         days.append("Sunday")
@@ -101,18 +114,70 @@ def preprocess_korean_dates(dates_str):
     if "월" in s_clean_days:
         days.append("Monday")
         
-    is_recurring = "매" in s or "매주" in s
+    is_recurring = "매" in s or "매주" in s or "매달" in s or "매월" in s
     
     if is_recurring and days:
         day_str = " & ".join(days)
         if start_date and end_date:
-            return f"Every {day_str} ({start_date} - {end_date})"
+            return f"Every {ordinal}{day_str} ({start_date} - {end_date})"
         elif start_date:
-            return f"Every {day_str} ({start_date} - 7/31/2027)"
+            return f"Every {ordinal}{day_str} ({start_date} - 7/31/2027)"
         else:
-            return f"Every {day_str}"
+            return f"Every {ordinal}{day_str}"
             
     return dates_str
+
+def normalize_time_str(time_str):
+    s = time_str.strip().lower()
+    if not any(char in s for char in ["오전", "오후", "시", "분"]):
+        return time_str
+        
+    parts = s.split("-")
+    if len(parts) == 2:
+        p1, p2 = parts[0].strip(), parts[1].strip()
+        is_pm1 = "오후" in p1
+        is_am1 = "오전" in p1
+        is_pm2 = "오후" in p2
+        is_am2 = "오전" in p2
+        
+        if is_pm1 and not is_pm2 and not is_am2:
+            is_pm2 = True
+        if is_am1 and not is_pm2 and not is_am2:
+            if p2.startswith("12"):
+                is_pm2 = True
+            else:
+                is_am2 = True
+        if is_pm2 and not is_pm1 and not is_am1:
+            is_pm1 = True
+        if is_am2 and not is_pm1 and not is_am1:
+            is_am1 = True
+            
+        def clean_num(p, is_pm, is_am):
+            colon_match = re.search(r"(\d+)\s*시\s*(\d+)\s*분", p)
+            if colon_match:
+                h = colon_match.group(1)
+                m = int(colon_match.group(2))
+                m_str = f"{m:02d}"
+                ampm = "PM" if is_pm else "AM"
+                return f"{h}:{m_str}{ampm}"
+                
+            digits = re.findall(r"\d+", p)
+            if digits:
+                h = digits[0]
+                m_str = "00"
+                if "분" in p and len(digits) > 1:
+                    m = int(digits[1])
+                    m_str = f"{m:02d}"
+                ampm = "PM" if is_pm else "AM"
+                return f"{h}:{m_str}{ampm}"
+            return ""
+            
+        t1 = clean_num(p1, is_pm1, is_am1)
+        t2 = clean_num(p2, is_pm2, is_am2)
+        if t1 and t2:
+            return f"{t1} - {t2}"
+            
+    return time_str
 
 def parse_time_block(time_str):
     """
@@ -175,7 +240,8 @@ def parse_time_string(time_str):
         if not line:
             continue
         try:
-            blocks.append(parse_time_block(line))
+            line_normalized = normalize_time_str(line)
+            blocks.append(parse_time_block(line_normalized))
         except ValueError:
             pass
     return blocks
