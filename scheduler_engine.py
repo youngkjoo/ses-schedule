@@ -84,20 +84,21 @@ def preprocess_korean_dates(dates_str):
         end_date = end_match.group(1)
         
     # Determine days of week
+    s_clean_days = s.replace("요일", "")
     days = []
-    if "일요일" in s or "주일" in s or "일" in s:
+    if "일" in s_clean_days or "주일" in s_clean_days:
         days.append("Sunday")
-    if "토요일" in s or "토" in s:
+    if "토" in s_clean_days:
         days.append("Saturday")
-    if "금요일" in s or "금" in s:
+    if "금" in s_clean_days:
         days.append("Friday")
-    if "목요일" in s or "목" in s:
+    if "목" in s_clean_days:
         days.append("Thursday")
-    if "수요일" in s or "수" in s:
+    if "수" in s_clean_days:
         days.append("Wednesday")
-    if "화요일" in s or "화" in s:
+    if "화" in s_clean_days:
         days.append("Tuesday")
-    if "월요일" in s or "월" in s:
+    if "월" in s_clean_days:
         days.append("Monday")
         
     is_recurring = "매" in s or "매주" in s
@@ -316,6 +317,7 @@ def is_date_matching_recurring(d, days_of_week, ordinals, is_last):
     return False
 
 def expand_dates(dates_str, exclusions_str=""):
+    dates_str = preprocess_korean_dates(dates_str)
     try:
         parsed_dates = parse_dates_field(dates_str)
     except ValueError:

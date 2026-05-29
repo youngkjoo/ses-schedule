@@ -32,19 +32,19 @@ def parse_raw_text(text):
         if not line_strip:
             continue
             
-        # Check if line starts with any of our keywords
+        # Check if line starts with any of our keywords (allowing optional leading list bullets like -, *, •)
         found_key = False
         for key, keywords in FIELD_MAPS.items():
             for kw in keywords:
-                # Match "Keyword:" or "Keyword :" or "Keyword"
-                if re.match(r"^" + re.escape(kw) + r"\s*[:：]", line_strip, re.IGNORECASE):
+                pattern = r"^[-*•\s]*" + re.escape(kw) + r"\s*[:：]"
+                if re.match(pattern, line_strip, re.IGNORECASE):
                     # Save previous key accumulation
                     if current_key:
                         data[current_key] = "\n".join(accumulated_value).strip()
                         
                     current_key = key
                     # Extract everything after the colon
-                    val = re.sub(r"^" + re.escape(kw) + r"\s*[:：]\s*", "", line_strip, flags=re.IGNORECASE)
+                    val = re.sub(pattern + r"\s*", "", line_strip, flags=re.IGNORECASE)
                     accumulated_value = [val] if val else []
                     found_key = True
                     break
