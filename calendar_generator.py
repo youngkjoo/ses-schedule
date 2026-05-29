@@ -92,7 +92,7 @@ def generate_calendar_html():
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TVKCC Facility Reservation Calendar (2026 - 2027)</title>
+    <title>TVKCC Facility Reservation Requests (NOT FINAL) (2026 - 2027)</title>
     
     <!-- Premium Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -441,7 +441,7 @@ def generate_calendar_html():
     <!-- Glassmorphic Header -->
     <header>
         <div class="brand">
-            <h1>TVKCC Facility Reservation Calendar</h1>
+            <h1>TVKCC Facility Reservation Requests (NOT FINAL)</h1>
             <div class="subtitle">Facility Schedule Planning Year: 8/2026 - 7/2027</div>
         </div>
         <div class="filter-container">
@@ -635,7 +635,6 @@ def generate_calendar_html():
 </html>
 """
     
-    # Updated output path to index.html for root Git Pages routing
     output_path = "/Users/youngjoo/Vibe/ses-schedule/index.html"
     try:
         with open(output_path, "w", encoding="utf-8") as f:
