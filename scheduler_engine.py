@@ -58,8 +58,11 @@ def preprocess_korean_dates(dates_str):
     # 1. Defensive parsing: Check for ISO timestamp format (e.g. 2026-10-03T07:00:00.000Z)
     iso_match = re.match(r"^(\d{4})-(\d{2})-(\d{2})T.*$", s)
     if iso_match:
-        y, m, d = iso_match.groups()
-        return f"{int(m)}/{int(d)}/{y}"
+        y, m, d = map(int, iso_match.groups())
+        from datetime import datetime
+        dt = datetime(y, m, d)
+        day_str = dt.strftime("%a")
+        return f"{m}/{d}/{y} ({day_str})"
         
     s = s.lower()
     

@@ -43,6 +43,9 @@ class TestSchedulerEngine(unittest.TestCase):
         self.assertEqual(preprocess_korean_dates("매달 1,3,4번째 주일"), "Every 1st, 3rd & 4th Sunday")
         self.assertEqual(preprocess_korean_dates("매달 첫째, 셋째 주일"), "Every 1st & 3rd Sunday")
         
+        # Test ISO date preprocessing:
+        self.assertEqual(preprocess_korean_dates("2026-10-03T07:00:00.000Z"), "10/3/2026 (Sat)")
+        
         # Test full date expansion:
         # 8/9/2026 is Sunday, 12/27/2026 is Sunday. There should be exactly 21 Sundays between these two dates.
         dates_expanded = expand_dates("8/9 부터 연말까지 매주일")

@@ -3,6 +3,25 @@ import urllib.request
 import urllib.parse
 import os
 import csv
+import re
+from datetime import datetime
+
+def clean_row_iso_dates(row):
+    cleaned = list(row)
+    for idx, cell in enumerate(cleaned):
+        val = str(cell).strip()
+        # Match ISO format: e.g. 2026-10-03T07:00:00.000Z
+        iso_match = re.match(r"^(\d{4})-(\d{2})-(\d{2})T.*$", val)
+        if iso_match:
+            y, m, d = map(int, iso_match.groups())
+            dt = datetime(y, m, d)
+            if idx == 3:
+                day_str = dt.strftime("%a")
+                cleaned[idx] = f"{m}/{d}/{y} ({day_str})"
+            else:
+                cleaned[idx] = f"{m}/{d}/{y}"
+    return cleaned
+
 
 CONFIG_FILE = "config.json"
 
@@ -37,6 +56,7 @@ def get_all_rows(sheet_name="8/2026 - 7/2027"):
     If the web_app_url is set, queries the Google Sheets Web App.
     Otherwise, falls back to the local sheet_2026_2027.csv or sheet_2025_2026.csv.
     """
+    raw_rows = None
     url = get_web_app_url()
     if url:
         try:
@@ -46,23 +66,25 @@ def get_all_rows(sheet_name="8/2026 - 7/2027"):
             with urllib.request.urlopen(req, timeout=10) as response:
                 res_data = json.loads(response.read().decode("utf-8"))
                 if "rows" in res_data:
-                    return res_data["rows"]
+                    raw_rows = res_data["rows"]
                 elif "error" in res_data:
                     raise Exception(f"Apps Script Error: {res_data['error']}")
         except Exception as e:
             print(f"Warning: Failed to connect to Google Sheets Web App ({e}). Falling back to local CSV.")
             
-    # Fallback to local CSV files
-    csv_filename = "sheet_2026_2027.csv" if "2026" in sheet_name else "sheet_2025_2026.csv"
-    if os.path.exists(csv_filename):
-        rows = []
-        with open(csv_filename, "r", encoding="utf-8") as f:
-            reader = csv.reader(f)
-            for row in reader:
-                rows.append(row)
-        return rows
-    else:
-        raise Exception(f"No Web App URL configured and local CSV file '{csv_filename}' not found.")
+    if raw_rows is None:
+        # Fallback to local CSV files
+        csv_filename = "sheet_2026_2027.csv" if "2026" in sheet_name else "sheet_2025_2026.csv"
+        if os.path.exists(csv_filename):
+            raw_rows = []
+            with open(csv_filename, "r", encoding="utf-8") as f:
+                reader = csv.reader(f)
+                for row in reader:
+                    raw_rows.append(row)
+        else:
+            raise Exception(f"No Web App URL configured and local CSV file '{csv_filename}' not found.")
+            
+    return [clean_row_iso_dates(r) for r in raw_rows]
 
 def overwrite_all(rows, sheet_name="8/2026 - 7/2027"):
     """Overwrites the entire sheet with the provided rows."""
