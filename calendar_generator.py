@@ -579,7 +579,7 @@ def generate_calendar_html():
                         
                         bookings.forEach(b => {{
                             const card = document.createElement("div");
-                            const isLiturgy = b.group.toLowerCase().includes("liturgy");
+                            const isLiturgy = b.group.toLowerCase().includes("liturgy") || b.group.toLowerCase() === "tvkcc";
                             card.className = `booking-card ${{isLiturgy ? 'liturgy' : ''}}`;
                             card.dataset.searchable = `${{b.group.toLowerCase()}} ${{b.event.toLowerCase()}}`;
                             
