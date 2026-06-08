@@ -15,7 +15,7 @@ def clean_row_iso_dates(row):
         if iso_match:
             y, m, d = map(int, iso_match.groups())
             dt = datetime(y, m, d)
-            if idx == 3:
+            if idx == 2:
                 day_str = dt.strftime("%a")
                 cleaned[idx] = f"{m}/{d}/{y} ({day_str})"
             else:
@@ -84,7 +84,14 @@ def get_all_rows(sheet_name="8/2026 - 7/2027"):
         else:
             raise Exception(f"No Web App URL configured and local CSV file '{csv_filename}' not found.")
             
-    return [clean_row_iso_dates(r) for r in raw_rows]
+    processed_rows = [clean_row_iso_dates(r) for r in raw_rows]
+    if processed_rows and len(processed_rows[0]) > 1:
+        header_val = str(processed_rows[0][0]).strip().lower()
+        next_val = str(processed_rows[0][1]).strip().lower()
+        if header_val in ["", "status", "x"] and next_val == "group":
+            print("💡 Detected leading empty/status column. Stripping it to match new layout.")
+            processed_rows = [r[1:] for r in processed_rows]
+    return processed_rows
 
 def overwrite_all(rows, sheet_name="8/2026 - 7/2027"):
     """Overwrites the entire sheet with the provided rows."""

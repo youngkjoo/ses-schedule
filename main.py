@@ -8,29 +8,29 @@ import overlap_detector
 import calendar_generator
 
 LITURGY_EVENTS_2026_2027 = [
-    ["x", "TVKCC", "TVKCC Sunday Block", "Every Sun", "7 AM - 1:00PM", "Church\nChapel\nCry Room\nRoom A\nRoom B\nVestibule\nKitchen", "9/13 & 9/20: Chapel", "SCHEDULED AS REQUESTED", "", ""],
-    ["x", "TVKCC", "Daily Mass", "Every Tue, Thr, Fri", "9:30 AM - 11 AM", "Chapel", "9/10/2026, 9/11/2026, 9/17/2026, 9/18/2026, 12/25/2026, 1/1/2027", "SCHEDULED AS REQUESTED", "", ""],
-    ["x", "TVKCC", "Assumption of Mary Mass", "8/15/2026 (Sat)", "9:30 AM - 11 AM\n7:30 PM - 9 PM", "Chapel", "", "SCHEDULED AS REQUESTED", "", ""],
-    ["x", "TVKCC", "새신자 환영회", "8/16/2026 (Sun)", "11 AM - 12 PM", "Room A", "", "SCHEDULED AS REQUESTED", "", ""],
-    ["x", "TVKCC", "Vigil Mass for TVKCC Bazaar Volunteers", "9/26/2026 (Sat)", "5:30 PM - 7 PM", "Chapel", "", "SCHEDULED AS REQUESTED", "", ""],
-    ["x", "TVKCC", "TVKCC Bazaar", "9/27/2026 (Sun)", "7 AM - 5 PM", "JP2\nParking lot", "Yes", "NOTHING SCHEDULED - AS LONG AS GREG IS OK WITH THIS", "", ""],
-    ["x", "TVKCC", "Advent Sacrament of Reconciliation", "12/16/2026 (Wed)", "6 PM - 8 PM", "Chapel", "", "SCHEDULED AS REQUESTED", "", ""],
-    ["x", "TVKCC", "Nativity of the Lord Night Mass", "12/24/2026 (Thr)", "7 PM - 10 PM", "Church", "", "SCHEDULED AS REQUESTED", "", ""],
-    ["x", "TVKCC", "Christmas - Reception", "12/24/2026 (Thr)", "2 PM - 11:55 PM", "JP2", "Yes", "SCHEDULED AS REQUESTED", "", ""],
-    ["x", "TVKCC", "Nativity of the Lord Mass", "12/25/2026 (Fri)", "8 AM - 10:30 AM", "Church", "", "SCHEDULED AS REQUESTED", "", ""],
-    ["x", "TVKCC", "New Year's Eve Mass", "12/31/2026 (Thr)", "8 PM - 9 PM", "Chapel", "", "SCHEDULED AS REQUESTED", "", ""],
-    ["x", "TVKCC", "Solemnity of Mary, the Holy Mother of God Mass", "1/1/2027 (Fri)", "9:30 AM - 11:30 AM", "Chapel", "", "SCHEDULED AS REQUESTED", "", ""],
-    ["x", "TVKCC", "Ash Wednesday Mass", "2/10/2027 (Wed)", "9:30 AM - 11:00 AM\n7:30 PM - 9:00 PM", "Chapel", "", "SCHEDULED AS REQUESTED", "", ""],
-    ["x", "TVKCC", "Lent Stations of the Crosss", "2/12, 2/19, 2/26, 3/5, 3/12, 3/19", "7:00 PM - 9:00 PM", "Church", "", "SCHEDULED", "", ""],
-    ["x", "TVKCC", "Palm Sunday Prep", "3/17/2027 (Wed)", "10 AM - 1 PM", "Room A", "", "SCHEDULED", "", ""],
-    ["x", "TVKCC", "Lent Sacrament of Reconciliation", "3/17/2027 (Wed)", "7 PM - 9 PM", "Chapel", "", "SCHEDULED", "", ""],
-    ["x", "TVKCC", "Triduum - Holy Thursday Prep", "3/24/2027 (Wed)", "3:00 PM - 5:00 PM", "Chapel", "", "SCHEDULED", "", ""],
-    ["x", "TVKCC", "Triduum - Holy Thursday Mass", "3/25/2027 (Thr)", "7:00 PM - 10:00 PM", "Church", "", "SCHEDULED", "", ""],
-    ["x", "TVKCC", "Triduum - Eucharistic Adoration", "3/25/2027 (Thr) - 3/26/2027 (Fri)", "9:00 PM - 7:00 AM", "Chapel", "", "SCHEDULED", "", ""],
-    ["x", "TVKCC", "Triduum - Holy Friday Stations of the Cross", "3/26/2027 (Fri)", "3:00 PM - 4:00 PM", "Church", "", "SCHEDULED", "", ""],
-    ["x", "TVKCC", "Triduum - Holy Friday Liturgy", "3/26/2027 (Fri)", "8:00 PM - 9:00 PM", "Church", "", "SCHEDULED", "", ""],
-    ["x", "TVKCC", "Triduum - Easter Vigil", "3/27/2027 (Sat)", "7:00 PM - 10:00 PM", "Church", "", "SCHEDULED", "", ""],
-    ["x", "TVKCC", "Triduum - Easter Mass", "3/27/2027 (Sat)", "2 PM - 11:55 PM", "JP2", "Yes", "SCHEDULED", "", ""]
+    ["TVKCC", "TVKCC Sunday Block", "Every Sun", "7 AM - 1:00PM", "Church\nChapel\nCry Room\nRoom A\nRoom B\nVestibule\nKitchen", "9/13 & 9/20: Chapel", "SCHEDULED AS REQUESTED", "", ""],
+    ["TVKCC", "Daily Mass", "Every Tue, Thr, Fri", "9:30 AM - 11 AM", "Chapel", "9/10/2026, 9/11/2026, 9/17/2026, 9/18/2026, 12/25/2026, 1/1/2027", "SCHEDULED AS REQUESTED", "", ""],
+    ["TVKCC", "Assumption of Mary Mass", "8/15/2026 (Sat)", "9:30 AM - 11 AM\n7:30 PM - 9 PM", "Chapel", "", "SCHEDULED AS REQUESTED", "", ""],
+    ["TVKCC", "새신자 환영회", "8/16/2026 (Sun)", "11 AM - 12 PM", "Room A", "", "SCHEDULED AS REQUESTED", "", ""],
+    ["TVKCC", "Vigil Mass for TVKCC Bazaar Volunteers", "9/26/2026 (Sat)", "5:30 PM - 7 PM", "Chapel", "", "SCHEDULED AS REQUESTED", "", ""],
+    ["TVKCC", "TVKCC Bazaar", "9/27/2026 (Sun)", "7 AM - 5 PM", "JP2\nParking lot", "Yes", "NOTHING SCHEDULED - AS LONG AS GREG IS OK WITH THIS", "", ""],
+    ["TVKCC", "Advent Sacrament of Reconciliation", "12/16/2026 (Wed)", "6 PM - 8 PM", "Chapel", "", "SCHEDULED AS REQUESTED", "", ""],
+    ["TVKCC", "Nativity of the Lord Night Mass", "12/24/2026 (Thr)", "7 PM - 10 PM", "Church", "", "SCHEDULED AS REQUESTED", "", ""],
+    ["TVKCC", "Christmas - Reception", "12/24/2026 (Thr)", "2 PM - 11:55 PM", "JP2", "Yes", "SCHEDULED AS REQUESTED", "", ""],
+    ["TVKCC", "Nativity of the Lord Mass", "12/25/2026 (Fri)", "8 AM - 10:30 AM", "Church", "", "SCHEDULED AS REQUESTED", "", ""],
+    ["TVKCC", "New Year's Eve Mass", "12/31/2026 (Thr)", "8 PM - 9 PM", "Chapel", "", "SCHEDULED AS REQUESTED", "", ""],
+    ["TVKCC", "Solemnity of Mary, the Holy Mother of God Mass", "1/1/2027 (Fri)", "9:30 AM - 11:30 AM", "Chapel", "", "SCHEDULED AS REQUESTED", "", ""],
+    ["TVKCC", "Ash Wednesday Mass", "2/10/2027 (Wed)", "9:30 AM - 11:00 AM\n7:30 PM - 9:00 PM", "Chapel", "", "SCHEDULED AS REQUESTED", "", ""],
+    ["TVKCC", "Lent Stations of the Crosss", "2/12, 2/19, 2/26, 3/5, 3/12, 3/19", "7:00 PM - 9:00 PM", "Church", "", "SCHEDULED", "", ""],
+    ["TVKCC", "Palm Sunday Prep", "3/17/2027 (Wed)", "10 AM - 1 PM", "Room A", "", "SCHEDULED", "", ""],
+    ["TVKCC", "Lent Sacrament of Reconciliation", "3/17/2027 (Wed)", "7 PM - 9 PM", "Chapel", "", "SCHEDULED", "", ""],
+    ["TVKCC", "Triduum - Holy Thursday Prep", "3/24/2027 (Wed)", "3:00 PM - 5:00 PM", "Chapel", "", "SCHEDULED", "", ""],
+    ["TVKCC", "Triduum - Holy Thursday Mass", "3/25/2027 (Thr)", "7:00 PM - 10:00 PM", "Church", "", "SCHEDULED", "", ""],
+    ["TVKCC", "Triduum - Eucharistic Adoration", "3/25/2027 (Thr) - 3/26/2027 (Fri)", "9:00 PM - 7:00 AM", "Chapel", "", "SCHEDULED", "", ""],
+    ["TVKCC", "Triduum - Holy Friday Stations of the Cross", "3/26/2027 (Fri)", "3:00 PM - 4:00 PM", "Church", "", "SCHEDULED", "", ""],
+    ["TVKCC", "Triduum - Holy Friday Liturgy", "3/26/2027 (Fri)", "8:00 PM - 9:00 PM", "Church", "", "SCHEDULED", "", ""],
+    ["TVKCC", "Triduum - Easter Vigil", "3/27/2027 (Sat)", "7:00 PM - 10:00 PM", "Church", "", "SCHEDULED", "", ""],
+    ["TVKCC", "Triduum - Easter Mass", "3/27/2027 (Sat)", "2 PM - 11:55 PM", "JP2", "Yes", "SCHEDULED", "", ""]
 ]
 
 def insert_row_by_layout(all_rows, new_row):
@@ -39,15 +39,15 @@ def insert_row_by_layout(all_rows, new_row):
     - Liturgy events go under "TVKCC Liturgy" section (before "TVKCC Community Events")
     - Other events go at the end of the sheet
     """
-    new_row = list(new_row) + [""] * (10 - len(new_row))
+    new_row = list(new_row) + [""] * (9 - len(new_row))
     
-    group = new_row[1].strip()
+    group = new_row[0].strip()
     is_liturgy = group.lower() == "tvkcc" or "liturgy" in group.lower()
     
     if is_liturgy:
         insert_idx = len(all_rows)
         for idx, row in enumerate(all_rows):
-            if len(row) > 1 and "tvkcc community events" in row[1].strip().lower():
+            if len(row) > 0 and "tvkcc community events" in row[0].strip().lower():
                 insert_idx = idx
                 break
         
@@ -114,7 +114,6 @@ def cmd_add(args):
         
     # No conflicts, proceed to write using the standardized fields from new_event!
     new_row = [
-        "x", # status code
         new_event.group,
         new_event.name,
         new_event.dates_str,

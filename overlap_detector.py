@@ -10,17 +10,17 @@ def load_events_from_rows(rows):
         return events
         
     for idx, row in enumerate(rows):
-        # Pad row to at least 8 columns to avoid IndexError
-        if len(row) < 8:
-            row = list(row) + [""] * (8 - len(row))
+        # Pad row to at least 7 columns to avoid IndexError
+        if len(row) < 7:
+            row = list(row) + [""] * (7 - len(row))
             
-        group = row[1].strip()
-        event_name = row[2].strip()
-        dates_str = row[3].strip()
-        time_str = row[4].strip()
-        room_str = row[5].strip()
-        exclusions_str = row[6].strip()
-        notes = row[7].strip()
+        group = row[0].strip()
+        event_name = row[1].strip()
+        dates_str = row[2].strip()
+        time_str = row[3].strip()
+        room_str = row[4].strip()
+        exclusions_str = row[5].strip()
+        notes = row[6].strip()
         
         # Skip header rows
         if group.lower() in ["group", "group name", "tvkcc liturgy", "tvkcc community events", ""]:
