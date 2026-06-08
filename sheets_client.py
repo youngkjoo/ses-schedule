@@ -60,7 +60,8 @@ def get_all_rows(sheet_name="8/2026 - 7/2027"):
     url = get_web_app_url()
     if url:
         try:
-            query = urllib.parse.urlencode({"sheet": sheet_name})
+            import time
+            query = urllib.parse.urlencode({"sheet": sheet_name, "_cb": int(time.time())})
             full_url = f"{url}?{query}"
             req = urllib.request.Request(full_url, method="GET")
             with urllib.request.urlopen(req, timeout=10) as response:
