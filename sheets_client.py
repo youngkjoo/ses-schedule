@@ -5,6 +5,9 @@ import os
 import csv
 import re
 from datetime import datetime
+import ssl
+
+ssl._create_default_https_context = ssl._create_unverified_context
 
 def clean_row_iso_dates(row):
     cleaned = list(row)
