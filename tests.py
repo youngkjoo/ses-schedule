@@ -131,5 +131,61 @@ class TestSchedulerEngine(unittest.TestCase):
         conflicts_back_to_back = overlap_detector.find_overlaps(ev3, [ev1])
         self.assertEqual(len(conflicts_back_to_back), 0)
 
+    def test_translations_glossary_completeness(self):
+        import csv
+        import json
+        import os
+
+        with open("translations.json", "r", encoding="utf-8") as f:
+            translations = json.load(f)
+
+        groups_in_glossary = translations.get("groups", {})
+        events_in_glossary = translations.get("events", {})
+
+        with open("sheet_2026_2027.csv", "r", encoding="utf-8") as f:
+            reader = csv.reader(f)
+            header = next(reader)
+            for row in reader:
+                if row and len(row) > 1:
+                    grp = row[0].strip()
+                    ev = row[1].strip()
+                    if grp and grp not in ["TVKCC Liturgy", "TVKCC Community Events / Meetings"]:
+                        self.assertIn(grp, groups_in_glossary, f"Missing Korean translation for group: {grp}")
+                    if ev:
+                        self.assertIn(ev, events_in_glossary, f"Missing Korean translation for event: {ev}")
+
+    def test_translation_helpers(self):
+        from calendar_generator import translate_group, translate_event, format_korean_time, load_translations
+        from datetime import datetime
+
+        translations = load_translations()
+        self.assertEqual(translate_group("Altar Servers", translations), "복사단")
+        self.assertEqual(translate_group("Sunday School", translations), "주일학교")
+        self.assertEqual(translate_event("Korean Mass", "TVKCC", translations), "한국어 미사")
+        self.assertEqual(translate_event("Confirmation Class", "TVKCC", translations), "견진 교리")
+
+        dt_start = datetime(2026, 8, 2, 9, 30)
+        dt_end = datetime(2026, 8, 2, 10, 30)
+        self.assertEqual(format_korean_time(dt_start, dt_end), "오전 9:30 - 오전 10:30")
+
+    def test_dual_calendar_generation(self):
+        from calendar_generator import generate_calendar_html
+        import os
+
+        result = generate_calendar_html()
+        self.assertTrue(result)
+        self.assertTrue(os.path.exists("index.html"))
+        self.assertTrue(os.path.exists("ko/index.html"))
+
+        with open("index.html", "r", encoding="utf-8") as f:
+            en_html = f.read()
+            self.assertIn('<html lang="en">', en_html)
+            self.assertIn('class="lang-btn active" id="langBtnEn"', en_html)
+
+        with open("ko/index.html", "r", encoding="utf-8") as f:
+            ko_html = f.read()
+            self.assertIn('<html lang="ko">', ko_html)
+            self.assertIn('class="lang-btn active" id="langBtnKo"', ko_html)
+
 if __name__ == "__main__":
     unittest.main()

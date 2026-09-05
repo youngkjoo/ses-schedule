@@ -1,0 +1,223 @@
+{
+  "ui": {
+    "en": {
+      "title": "TVKCC Facility Reservation Requests (NOT FINAL) (2026 - 2027)",
+      "heading": "TVKCC Facility Reservation Requests (NOT FINAL)",
+      "subtitle": "Facility Schedule Planning Year: 8/2026 - 7/2027",
+      "search_placeholder": "🔍 Search by Event...",
+      "all_groups": "👥 All Groups",
+      "day_header": "Day",
+      "switch_lang_label": "한국어",
+      "switch_lang_target": "ko"
+    },
+    "ko": {
+      "title": "TVKCC 본당 시설 예약 현황 (가안) (2026 - 2027)",
+      "heading": "TVKCC 본당 시설 예약 현황 (가안)",
+      "subtitle": "본당 시설 일정 계획 연도: 2026년 8월 - 2027년 7월",
+      "search_placeholder": "🔍 이벤트 검색...",
+      "all_groups": "👥 전체 단체",
+      "day_header": "일자",
+      "switch_lang_label": "English",
+      "switch_lang_target": "en"
+    }
+  },
+  "facilities": {
+    "Church": {
+      "en": "Church",
+      "ko": "대성당",
+      "bilingual_en": "Church<br><span class=\"sub-lang\">대성당</span>",
+      "bilingual_ko": "대성당<br><span class=\"sub-lang\">Church</span>"
+    },
+    "Chapel": {
+      "en": "Chapel",
+      "ko": "소성당",
+      "bilingual_en": "Chapel<br><span class=\"sub-lang\">소성당</span>",
+      "bilingual_ko": "소성당<br><span class=\"sub-lang\">Chapel</span>"
+    },
+    "Cry Room": {
+      "en": "Cry Room",
+      "ko": "유아방",
+      "bilingual_en": "Cry Room<br><span class=\"sub-lang\">유아방</span>",
+      "bilingual_ko": "유아방<br><span class=\"sub-lang\">Cry Room</span>"
+    },
+    "Room A": {
+      "en": "Room A",
+      "ko": "룸 A",
+      "bilingual_en": "Room A<br><span class=\"sub-lang\">룸 A</span>",
+      "bilingual_ko": "룸 A<br><span class=\"sub-lang\">Room A</span>"
+    },
+    "Room B": {
+      "en": "Room B",
+      "ko": "룸 B",
+      "bilingual_en": "Room B<br><span class=\"sub-lang\">룸 B</span>",
+      "bilingual_ko": "룸 B<br><span class=\"sub-lang\">Room B</span>"
+    },
+    "JP2": {
+      "en": "JP2",
+      "ko": "JP2 체육관",
+      "bilingual_en": "JP2<br><span class=\"sub-lang\">체육관</span>",
+      "bilingual_ko": "체육관<br><span class=\"sub-lang\">JP2</span>"
+    },
+    "Parking Lot": {
+      "en": "Parking Lot",
+      "ko": "주차장",
+      "bilingual_en": "Parking Lot<br><span class=\"sub-lang\">주차장</span>",
+      "bilingual_ko": "주차장<br><span class=\"sub-lang\">Parking Lot</span>"
+    }
+  },
+  "months": {
+    "August 2026": "2026년 8월",
+    "September 2026": "2026년 9월",
+    "October 2026": "2026년 10월",
+    "November 2026": "2026년 11월",
+    "December 2026": "2026년 12월",
+    "January 2027": "2027년 1월",
+    "February 2027": "2027년 2월",
+    "March 2027": "2027년 3월",
+    "April 2027": "2027년 4월",
+    "May 2027": "2027년 5월",
+    "June 2027": "2027년 6월",
+    "July 2027": "2027년 7월"
+  },
+  "weekdays": {
+    "Sun": "일",
+    "Mon": "월",
+    "Tue": "화",
+    "Wed": "수",
+    "Thu": "목",
+    "Fri": "금",
+    "Sat": "토"
+  },
+  "groups": {
+    "Altar Servers": "복사단",
+    "Basic Christian Faith Community": "소공동체",
+    "Bible Study": "성경공부",
+    "Charismatic Renewal Prayer": "성령기도회",
+    "Choir": "성가대",
+    "Cursillo": "꾸르실료",
+    "Joakim & Anna Group": "요아킴 & 안나회",
+    "Legion of Mary": "레지오 마리애",
+    "Leticia": "레티시아",
+    "Men's Choir": "남성합창단",
+    "Pastoral Council": "사목회",
+    "Secular Franciscan Order": "재속 프란치스코회",
+    "St. Mary Group": "성모회",
+    "Sunday School": "주일학교",
+    "Sunday School PTA": "주일학교 자모회",
+    "TVCS": "TVCS",
+    "TVKCC": "TVKCC",
+    "TVKCC Band": "TVKCC 밴드",
+    "Ultreya": "울뜨레야"
+  },
+  "events": {
+    "3rd & 4th Grades": "3-4학년 교리",
+    "Acies": "아치에스 (봉헌식)",
+    "Advent Sacrament of Reconciliation": "대림 판공성사",
+    "Advent Wreath Crafting": "대림환 만들기",
+    "Annual Meeting": "연례 총회",
+    "Ash Wednesday Mass": "재의 수요일 미사",
+    "Assumption of Mary Mass": "성모 승천 대축일 미사",
+    "Bi-annual Meeting (1st half)": "상반기 정기 모임",
+    "Bi-annual Meeting (2nd half)": "하반기 정기 모임",
+    "Caritas Team Meeting": "카리타스 팀 모임",
+    "Christmas - Reception": "성탄 친교",
+    "Concert Rehearsal #1": "연주회 리허설 #1",
+    "Concert Rehearsal #2": "연주회 리허설 #2",
+    "Confirmation Class": "견진 교리",
+    "Confirmation Rehearsal": "견진 리허설",
+    "Curia Monthly Meetings": "꾸리아 월례회의",
+    "Daily Mass": "평일 미사",
+    "English Genesis": "영어 창세기 성경공부",
+    "English Mass": "영어 미사",
+    "Exodus": "탈출기 성경공부",
+    "Father’s Day": "어버이날 행사",
+    "Full Bible Reading": "성경 통독",
+    "Grand Ultreya": "그랜드 울뜨레야",
+    "Group Meeting": "정기 모임",
+    "Group Practice": "정기 연습",
+    "High School": "고등부 교리",
+    "Kick Off Event": "개강 행사 (Kick Off)",
+    "Korean Mass": "한국어 미사",
+    "LaLa Kids Practice": "라라 키즈 연습",
+    "Lent Sacrament of Reconciliation": "사순 판공성사",
+    "Lent Stations of the Crosss": "사순 십자가의 길",
+    "Lent Stations of the Cross": "사순 십자가의 길",
+    "Luke #1": "루카 #1",
+    "Luke #2": "루카 #2",
+    "Luke #3": "루카 #3",
+    "Luke #7": "루카 #7",
+    "Marian Devotion Mass": "성모 신심 미사",
+    "Mass with Bishop": "주교님 집전 미사",
+    "Mass with Bishop from Korea": "한국 주교님 집전 미사",
+    "Matthew #1/2": "마태오 #1/2",
+    "Matthew #3": "마태오 #3",
+    "Matthew #4": "마태오 #4",
+    "Matthew #5": "마태오 #5",
+    "Meeting with Bishop from Korea": "한국 주교님과의 만남",
+    "Monthly Leaders Meeting": "월례 구역장·임원 모임",
+    "Monthly Meeting": "월례회",
+    "Mother of All People Pr.": "모든 이의 어머니 Pr.",
+    "Mother of Christ Pr.": "그리스도의 어머니 Pr.",
+    "Mother of Divine Grace Pr.": "은총의 어머니 Pr.",
+    "Nativity of the Lord Mass": "예수 성탄 대축일 낮미사",
+    "Nativity of the Lord Night Mass": "예수 성탄 대축일 밤미사",
+    "New Year's Eve Mass": "송년 미사",
+    "Practice & Bible Reading": "연습 및 성경 읽기",
+    "Pre-confirmation": "견진 예비반 교리",
+    "Queen of Angels Pr.": "천사의 모후 Pr.",
+    "Queen of Mercy Pr.": "자비의 모후 Pr.",
+    "Sacrament of Confirmation & Reception": "견진성사 및 축하연",
+    "Salus Team Meeting": "살루스 팀 모임",
+    "Senior Bible Reading Group": "시니어 성경 통독",
+    "Solemnity of Mary, the Holy Mother of God Mass": "천주의 성모 마리아 대축일 미사",
+    "Sunday Classes": "주일학교 교리 수업",
+    "TVKCC Day": "본당의 날",
+    "TVKCC Men's Choir Annual Concert": "TVKCC 남성합창단 정기 연주회",
+    "TVKCC Sat Sports Event": "토요 체육 활동",
+    "TVKCC Sunday Block": "주일 블록",
+    "TVKCC Youth Day": "청소년의 날",
+    "Triduum - Easter Mass": "주님 부활 대축일 낮미사",
+    "Triduum - Easter Vigil": "파스카 성야 미사",
+    "Triduum - Eucharistic Adoration": "성체조배",
+    "Triduum - Holy Friday Liturgy": "주님 수난 예식 (성금요일)",
+    "Triduum - Holy Friday Stations of the Cross": "성금요일 십자가의 길",
+    "Triduum - Holy Thursday Mass": "주님 만찬 성목요일 미사",
+    "Triduum - Holy Thursday Prep": "성목요일 전례 준비",
+    "Ultreya Officers Meeting": "울뜨레야 임원 모임",
+    "Weekday Evening Mass": "평일 저녁 미사",
+    "Weekly Meeting": "주간 모임",
+    "Weekly Practice": "정기 연습",
+    "Year End Party": "송년회",
+    "Year-end Party": "송년회"
+  },
+  "pattern_rules": [
+    {
+      "pattern": "(?i)weekly practice",
+      "replacement": "정기 연습"
+    },
+    {
+      "pattern": "(?i)monthly meeting",
+      "replacement": "월례회"
+    },
+    {
+      "pattern": "(?i)year[- ]end party",
+      "replacement": "송년회"
+    },
+    {
+      "pattern": "(?i)annual meeting",
+      "replacement": "연례 총회"
+    },
+    {
+      "pattern": "(?i)group meeting",
+      "replacement": "정기 모임"
+    },
+    {
+      "pattern": "(?i)rehearsal",
+      "replacement": "리허설"
+    },
+    {
+      "pattern": "(?i)mass",
+      "replacement": "미사"
+    }
+  ]
+}

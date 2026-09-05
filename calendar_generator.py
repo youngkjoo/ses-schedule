@@ -1,20 +1,12 @@
 import json
 import calendar
+import os
+import re
 from datetime import date, datetime, timedelta
 import sheets_client
 import overlap_detector
 
 FACILITIES = ["Church", "Chapel", "Cry Room", "Room A", "Room B", "JP2", "Parking Lot"]
-
-FACILITY_BILINGUAL = {
-    "Church": "Church<br>대성당",
-    "Chapel": "Chapel<br>소성당",
-    "Cry Room": "Cry Room<br>유아방",
-    "Room A": "Room A<br>룸 A",
-    "Room B": "Room B<br>룸 B",
-    "JP2": "JP2<br>체육관",
-    "Parking Lot": "Parking Lot<br>주차장"
-}
 
 MONTHS_LIST = [
     (2026, 8, "August 2026"),
@@ -31,79 +23,82 @@ MONTHS_LIST = [
     (2027, 7, "July 2027"),
 ]
 
-def generate_calendar_html():
-    print("🔄 Loading bookings to generate calendar view...")
-    try:
-        rows = sheets_client.get_all_rows()
-    except Exception as e:
-        print(f"❌ Error loading sheet: {e}")
-        return False
-        
-    events = overlap_detector.load_events_from_rows(rows)
-    
-    all_intervals = []
-    for ev in events:
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+TRANSLATIONS_FILE = os.path.join(SCRIPT_DIR, "translations.json")
+
+def load_translations():
+    """Loads the canonical translation glossary."""
+    if os.path.exists(TRANSLATIONS_FILE):
         try:
-            all_intervals.extend(ev.get_intervals())
+            with open(TRANSLATIONS_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
         except Exception as e:
-            print(f"Warning: Failed to expand '{ev.name}' during calendar generation: {e}")
-            
-    database = {}
-    for room, start_dt, end_dt, group, name in all_intervals:
-        y, m, d = start_dt.year, start_dt.month, start_dt.day
-        
-        database.setdefault(y, {}).setdefault(m, {}).setdefault(d, {}).setdefault(room, [])
-        
-        time_str = f"{start_dt.strftime('%-I:%M %p')} - {end_dt.strftime('%-I:%M %p')}"
-        database[y][m][d][room].append({
-            "group": group,
-            "event": name,
-            "time": time_str,
-            "start_time_sort": start_dt.strftime('%H:%M')
-        })
-        
-    for y in database:
-        for m in database[y]:
-            for d in database[y][m]:
-                for room in database[y][m][d]:
-                    database[y][m][d][room].sort(key=lambda b: b["start_time_sort"])
-                    
-    monthly_grids = []
+            print(f"⚠️ Warning: Could not load translations.json: {e}")
+    return {"ui": {}, "facilities": {}, "months": {}, "weekdays": {}, "groups": {}, "events": {}, "pattern_rules": []}
+
+def translate_group(group_name, translations):
+    """Translates group name using glossary with case-insensitive fallback."""
+    if not group_name:
+        return ""
+    groups_map = translations.get("groups", {})
+    if group_name in groups_map:
+        return groups_map[group_name]
+    for k, v in groups_map.items():
+        if k.lower() == group_name.lower():
+            return v
+    return group_name
+
+def translate_event(event_name, group_name, translations):
+    """Translates event name using glossary and regex pattern rules."""
+    if not event_name:
+        return ""
+    events_map = translations.get("events", {})
+    if event_name in events_map:
+        return events_map[event_name]
+    for k, v in events_map.items():
+        if k.lower() == event_name.lower():
+            return v
     
-    for year, month, month_name in MONTHS_LIST:
-        num_days = calendar.monthrange(year, month)[1]
-        days_data = []
-        
-        for d in range(1, num_days + 1):
-            curr_date = date(year, month, d)
-            weekday_name = curr_date.strftime("%a")
-            is_sunday = curr_date.weekday() == 6
-            is_saturday = curr_date.weekday() == 5
+    # Try pattern replacement rules
+    rules = translations.get("pattern_rules", [])
+    for rule in rules:
+        pat = rule.get("pattern")
+        rep = rule.get("replacement")
+        if pat and rep and re.search(pat, event_name):
+            return re.sub(pat, rep, event_name)
             
-            day_bookings = {}
-            for room in FACILITIES:
-                day_bookings[room] = database.get(year, {}).get(month, {}).get(d, {}).get(room, [])
-                
-            days_data.append({
-                "day": d,
-                "weekday": weekday_name,
-                "is_sunday": is_sunday,
-                "is_saturday": is_saturday,
-                "bookings": day_bookings
-            })
-            
-        monthly_grids.append({
-            "key": f"{year}-{month}",
-            "name": month_name,
-            "days": days_data
-        })
-        
-    html_content = f"""<!DOCTYPE html>
-<html lang="en">
+    return event_name
+
+def format_korean_time(start_dt, end_dt):
+    """Formats time in standard Korean convention (오전/오후 H:MM - 오전/오후 H:MM)."""
+    start_ampm = "오전" if start_dt.strftime("%p") == "AM" else "오후"
+    end_ampm = "오전" if end_dt.strftime("%p") == "AM" else "오후"
+    start_str = f"{start_ampm} {start_dt.strftime('%-I:%M')}"
+    end_str = f"{end_ampm} {end_dt.strftime('%-I:%M')}"
+    return f"{start_str} - {end_str}"
+
+def render_html_page(monthly_grids, translations, default_lang="en", is_ko_subdir=False):
+    """Renders the HTML content for either English (default) or Korean (dedicated)."""
+    ui = translations.get("ui", {}).get(default_lang, translations.get("ui", {}).get("en", {}))
+    other_lang = "en" if default_lang == "ko" else "ko"
+    
+    # Static header cells based on initial language
+    facility_headers_html = []
+    for room in FACILITIES:
+        room_data = translations.get("facilities", {}).get(room, {})
+        cell_content = room_data.get(f"bilingual_{default_lang}", room)
+        room_id = "th_" + re.sub(r"[^a-zA-Z0-9_]", "_", room)
+        facility_headers_html.append(f'<th id="{room_id}">{cell_content}</th>')
+    facility_headers_str = "".join(facility_headers_html)
+    
+    nav_to_other_target = "../" if is_ko_subdir and default_lang == "ko" else "ko/"
+
+    return f"""<!DOCTYPE html>
+<html lang="{default_lang}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TVKCC Facility Reservation Requests (NOT FINAL) (2026 - 2027)</title>
+    <title>{ui.get('title', 'TVKCC Facility Reservation Requests')}</title>
     
     <!-- Anti-Caching Directives to ensure real-time requests -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -113,7 +108,7 @@ def generate_calendar_html():
     <!-- Premium Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
         :root {{
@@ -141,13 +136,13 @@ def generate_calendar_html():
         }}
 
         body {{
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', 'Noto Sans KR', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             padding: 2.5rem 1.5rem;
             min-height: 100vh;
             line-height: 1.5;
-            overflow: hidden;
+            overflow-x: hidden;
         }}
 
         /* Header Container */
@@ -173,7 +168,7 @@ def generate_calendar_html():
         }}
 
         h1 {{
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Outfit', 'Noto Sans KR', sans-serif;
             font-size: 1.75rem;
             font-weight: 700;
             background: linear-gradient(90deg, #a5b4fc 0%, #818cf8 100%);
@@ -185,6 +180,14 @@ def generate_calendar_html():
             color: var(--text-muted);
             font-size: 0.9rem;
             font-weight: 500;
+        }}
+
+        /* Header Controls (Filter + Language Toggle) */
+        .header-controls {{
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
         }}
 
         /* Filter Container */
@@ -218,7 +221,7 @@ def generate_calendar_html():
             background-position: right 0.75rem center;
             background-size: 1.25rem;
             padding-right: 2.75rem;
-            width: 200px;
+            width: 220px;
         }}
 
         .group-select select option {{
@@ -230,6 +233,44 @@ def generate_calendar_html():
             outline: none;
             border-color: #6366f1;
             box-shadow: var(--accent-glow);
+        }}
+
+        /* Language Switcher Segmented Control */
+        .lang-switch-container {{
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px;
+            border-radius: 100px;
+            border: 1px solid var(--border-color);
+            gap: 2px;
+        }}
+
+        .lang-btn {{
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 0.5rem 1rem;
+            font-family: 'Outfit', 'Noto Sans KR', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 100px;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }}
+
+        .lang-btn:hover {{
+            color: var(--text-color);
+        }}
+
+        .lang-btn.active {{
+            background: var(--primary-gradient);
+            color: #ffffff;
+            box-shadow: 0 2px 10px rgba(99, 102, 241, 0.4);
         }}
 
         /* Month Switcher Tab Bar */
@@ -262,7 +303,7 @@ def generate_calendar_html():
             background-color: var(--surface-color);
             border: 1px solid var(--border-color);
             color: var(--text-muted);
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Outfit', 'Noto Sans KR', sans-serif;
             font-size: 0.95rem;
             font-weight: 600;
             cursor: pointer;
@@ -333,16 +374,23 @@ def generate_calendar_html():
         /* Table Headers - STICKY TOP */
         thead th {{
             background-color: var(--surface-lighter);
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Outfit', 'Noto Sans KR', sans-serif;
             font-weight: 700;
             font-size: 0.95rem;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
+            letter-spacing: 0.03em;
             color: #a5b4fc;
             position: sticky;
             top: 0;
             z-index: 10;
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            line-height: 1.35;
+        }}
+
+        .sub-lang {{
+            font-size: 0.78rem;
+            font-weight: 500;
+            opacity: 0.7;
+            letter-spacing: normal;
         }}
 
         /* Double-Sticky Top-Left Corner Header cell */
@@ -353,6 +401,7 @@ def generate_calendar_html():
             left: 0;
             z-index: 12;
             border-right: 2px solid var(--border-color);
+            text-align: center;
         }}
 
         /* Day Row Column - STICKY LEFT */
@@ -360,7 +409,7 @@ def generate_calendar_html():
             position: sticky;
             left: 0;
             background-color: var(--surface-lighter);
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Outfit', 'Noto Sans KR', sans-serif;
             font-weight: 700;
             font-size: 1.05rem;
             z-index: 5;
@@ -431,6 +480,7 @@ def generate_calendar_html():
             font-weight: 600;
             color: var(--text-color);
             margin-bottom: 0.1rem;
+            line-height: 1.35;
         }}
 
         .booking-group {{
@@ -457,17 +507,23 @@ def generate_calendar_html():
     <!-- Glassmorphic Header -->
     <header>
         <div class="brand">
-            <h1>TVKCC Facility Reservation Requests (NOT FINAL)</h1>
-            <div class="subtitle">Facility Schedule Planning Year: 8/2026 - 7/2027</div>
+            <h1 id="pageHeading">{ui.get('heading', 'TVKCC Facility Reservation Requests (NOT FINAL)')}</h1>
+            <div class="subtitle" id="pageSubtitle">{ui.get('subtitle', 'Facility Schedule Planning Year: 8/2026 - 7/2027')}</div>
         </div>
-        <div class="filter-container">
-            <div class="group-select">
-                <select id="groupFilter" onchange="handleSearch()">
-                    <option value="">👥 All Groups</option>
-                </select>
+        <div class="header-controls">
+            <div class="filter-container">
+                <div class="group-select">
+                    <select id="groupFilter" onchange="handleSearch()">
+                        <option value="">{ui.get('all_groups', '👥 All Groups')}</option>
+                    </select>
+                </div>
+                <div class="search-box">
+                    <input type="text" id="search" placeholder="{ui.get('search_placeholder', '🔍 Search by Event...')}" oninput="handleSearch()">
+                </div>
             </div>
-            <div class="search-box">
-                <input type="text" id="search" placeholder="🔍 Search by Event..." oninput="handleSearch()">
+            <div class="lang-switch-container">
+                <button class="lang-btn {'active' if default_lang == 'en' else ''}" id="langBtnEn" onclick="switchLanguage('en')">EN</button>
+                <button class="lang-btn {'active' if default_lang == 'ko' else ''}" id="langBtnKo" onclick="switchLanguage('ko')">한국어</button>
             </div>
         </div>
     </header>
@@ -483,8 +539,8 @@ def generate_calendar_html():
             <table>
                 <thead>
                     <tr>
-                        <th>Day</th>
-                        {"".join(f"<th>{FACILITY_BILINGUAL.get(room, room)}</th>" for room in FACILITIES)}
+                        <th id="dayColHeader">{ui.get('day_header', 'Day')}</th>
+                        {facility_headers_str}
                     </tr>
                 </thead>
                 <tbody id="calendarGrid"></tbody>
@@ -493,60 +549,97 @@ def generate_calendar_html():
     </div>
 
     <script>
-        // Database injected directly from Python backend expansion
-        const calendarData = {json.dumps(monthly_grids)};
-        
+        // Injected data and translations
+        const calendarData = {json.dumps(monthly_grids, ensure_ascii=False)};
+        const translations = {json.dumps(translations, ensure_ascii=False)};
+        const FACILITIES = {json.dumps(FACILITIES)};
+        const IS_KO_SUBDIR = {str(is_ko_subdir).lower()};
+        const INITIAL_DEFAULT_LANG = "{default_lang}";
+
+        // Language resolution: URL Param > Subdirectory mode > LocalStorage > Default
+        function resolveInitialLanguage() {{
+            const urlParams = new URLSearchParams(window.location.search);
+            const paramLang = urlParams.get("lang");
+            if (paramLang === "ko" || paramLang === "en") {{
+                return paramLang;
+            }}
+            if (IS_KO_SUBDIR) {{
+                return "ko";
+            }}
+            const saved = localStorage.getItem("ses_calendar_lang");
+            if (saved === "ko" || saved === "en") {{
+                return saved;
+            }}
+            return INITIAL_DEFAULT_LANG;
+        }}
+
+        let currentLang = resolveInitialLanguage();
         let activeMonthKey = "{monthly_grids[0]['key']}";
 
-        // Render Month Navigation Tab Buttons
+        // Month Navigation Tabs
         const monthTabsEl = document.getElementById("monthTabs");
         calendarData.forEach((month, idx) => {{
             const btn = document.createElement("button");
             btn.className = `month-tab ${{month.key === activeMonthKey ? 'active' : ''}}`;
-            btn.innerText = month.name;
+            btn.id = `monthTab_${{month.key}}`;
+            btn.innerText = currentLang === "ko" ? (month.name_ko || month.name) : month.name;
             btn.onclick = () => selectMonth(month.key);
             monthTabsEl.appendChild(btn);
         }});
 
         function selectMonth(monthKey) {{
             activeMonthKey = monthKey;
-            
-            // Toggle active tabs
             const tabs = document.querySelectorAll(".month-tab");
             calendarData.forEach((month, idx) => {{
                 tabs[idx].className = `month-tab ${{month.key === activeMonthKey ? 'active' : ''}}`;
             }});
-            
             renderGrid();
         }}
 
-        // Dynamic Group Filter Population
+        // Dynamic Group Filter Population (Localized)
         function populateGroupFilter() {{
             const groupSelect = document.getElementById("groupFilter");
             const currentSelected = groupSelect.value;
+            const allLabel = (translations.ui[currentLang] && translations.ui[currentLang].all_groups) || "👥 All Groups";
             
-            groupSelect.innerHTML = '<option value="">👥 All Groups</option>';
+            groupSelect.innerHTML = `<option value="">${{allLabel}}</option>`;
             
-            const groups = new Set();
+            // Map canonical English groups to localized labels
+            const groupsMap = new Map();
             calendarData.forEach(month => {{
                 month.days.forEach(day => {{
                     Object.values(day.bookings).forEach(roomBookings => {{
                         roomBookings.forEach(b => {{
-                            if (b.group) groups.add(b.group.trim());
+                            if (b.group) {{
+                                const canonical = b.group.trim();
+                                if (!groupsMap.has(canonical)) {{
+                                    groupsMap.set(canonical, {{
+                                        canonical: canonical,
+                                        en: canonical,
+                                        ko: b.group_ko || canonical
+                                    }});
+                                }}
+                            }}
                         }});
                     }});
                 }});
             }});
             
-            const sortedGroups = Array.from(groups).sort();
-            sortedGroups.forEach(grp => {{
+            // Sort by current language display name
+            const sorted = Array.from(groupsMap.values()).sort((a, b) => {{
+                const nameA = currentLang === 'ko' ? a.ko : a.en;
+                const nameB = currentLang === 'ko' ? b.ko : b.en;
+                return nameA.localeCompare(nameB);
+            }});
+            
+            sorted.forEach(grp => {{
                 const opt = document.createElement("option");
-                opt.value = grp.toLowerCase();
-                opt.innerText = grp;
+                opt.value = grp.canonical.toLowerCase();
+                opt.innerText = currentLang === 'ko' ? grp.ko : grp.en;
                 groupSelect.appendChild(opt);
             }});
             
-            if (currentSelected && Array.from(groups).some(g => g.toLowerCase() === currentSelected)) {{
+            if (currentSelected) {{
                 groupSelect.value = currentSelected;
             }}
         }}
@@ -564,10 +657,11 @@ def generate_calendar_html():
                 else if (day.is_saturday) row.className = "saturday";
                 
                 const dayCell = document.createElement("td");
-                dayCell.innerHTML = `<div>${{day.day}}</div><div style="font-size: 0.75rem; font-weight: 500; opacity: 0.6">${{day.weekday}}</div>`;
+                const weekdayLabel = currentLang === 'ko' ? (day.weekday_ko || day.weekday) : day.weekday;
+                dayCell.innerHTML = `<div>${{day.day}}</div><div style="font-size: 0.75rem; font-weight: 500; opacity: 0.6">${{weekdayLabel}}</div>`;
                 row.appendChild(dayCell);
                 
-                {json.dumps(FACILITIES)}.forEach(room => {{
+                FACILITIES.forEach(room => {{
                     const cell = document.createElement("td");
                     const bookings = day.bookings[room] || [];
                     
@@ -581,12 +675,20 @@ def generate_calendar_html():
                             const card = document.createElement("div");
                             const isLiturgy = b.group.toLowerCase().includes("liturgy") || b.group.toLowerCase() === "tvkcc";
                             card.className = `booking-card ${{isLiturgy ? 'liturgy' : ''}}`;
-                            card.dataset.searchable = `${{b.group.toLowerCase()}} ${{b.event.toLowerCase()}}`;
+                            
+                            // Searchable string includes BOTH English and Korean terms
+                            const searchableText = `${{b.group.toLowerCase()}} ${{b.event.toLowerCase()}} ${{(b.group_ko || '').toLowerCase()}} ${{(b.event_ko || '').toLowerCase()}}`;
+                            card.dataset.searchable = searchableText;
+                            card.dataset.groupCanonical = b.group.toLowerCase().trim();
+                            
+                            const displayEvent = currentLang === 'ko' ? (b.event_ko || b.event) : b.event;
+                            const displayGroup = currentLang === 'ko' ? (b.group_ko || b.group) : b.group;
+                            const displayTime = currentLang === 'ko' ? (b.time_ko || b.time) : b.time;
                             
                             card.innerHTML = `
-                                <div class="booking-time">${{b.time}}</div>
-                                <div class="booking-event">${{b.event}}</div>
-                                <div class="booking-group">${{b.group}}</div>
+                                <div class="booking-time">${{displayTime}}</div>
+                                <div class="booking-event">${{displayEvent}}</div>
+                                <div class="booking-group">${{displayGroup}}</div>
                             `;
                             listWrapper.appendChild(card);
                         }});
@@ -609,10 +711,10 @@ def generate_calendar_html():
             
             cards.forEach(card => {{
                 const searchableText = card.dataset.searchable || "";
-                const groupAttr = card.querySelector(".booking-group").innerText.toLowerCase().trim();
+                const groupCanonical = card.dataset.groupCanonical || "";
                 
                 const matchesQuery = searchableText.includes(query);
-                const matchesGroup = groupFilter === "" || groupAttr === groupFilter;
+                const matchesGroup = groupFilter === "" || groupCanonical === groupFilter;
                 
                 if (matchesQuery && matchesGroup) {{
                     card.classList.remove("hidden-booking");
@@ -644,24 +746,187 @@ def generate_calendar_html():
             }});
         }}
 
-        populateGroupFilter();
-        renderGrid();
+        // Language Switcher Handler
+        function switchLanguage(lang, updateUrl = true) {{
+            currentLang = lang;
+            localStorage.setItem("ses_calendar_lang", lang);
+            
+            // Update HTML lang attribute
+            document.documentElement.lang = lang;
+            
+            // Update toggle buttons active state
+            document.getElementById("langBtnEn").classList.toggle("active", lang === "en");
+            document.getElementById("langBtnKo").classList.toggle("active", lang === "ko");
+            
+            // Localized UI Texts
+            const ui = (translations.ui && translations.ui[lang]) || {{}};
+            if (ui.title) document.title = ui.title;
+            if (ui.heading) document.getElementById("pageHeading").innerText = ui.heading;
+            if (ui.subtitle) document.getElementById("pageSubtitle").innerText = ui.subtitle;
+            if (ui.search_placeholder) document.getElementById("search").placeholder = ui.search_placeholder;
+            if (ui.day_header) document.getElementById("dayColHeader").innerText = ui.day_header;
+            
+            // Localize Facility Headers
+            FACILITIES.forEach(room => {{
+                const roomData = (translations.facilities && translations.facilities[room]) || {{}};
+                const roomTh = document.getElementById("th_" + room.replace(/[^a-zA-Z0-9_]/g, "_"));
+                if (roomTh) {{
+                    roomTh.innerHTML = roomData[`bilingual_${{lang}}`] || room;
+                }}
+            }});
+            
+            // Localize Month Tabs
+            calendarData.forEach(month => {{
+                const tab = document.getElementById(`monthTab_${{month.key}}`);
+                if (tab) {{
+                    tab.innerText = lang === "ko" ? (month.name_ko || month.name) : month.name;
+                }}
+            }});
+            
+            // Re-populate and retain selected filter
+            populateGroupFilter();
+            
+            // Re-render calendar grid in new language
+            renderGrid();
+            
+            // Manage clean URLs
+            if (updateUrl && window.location.protocol.startsWith("http")) {{
+                const isSubdir = window.location.pathname.endsWith("/ko/") || window.location.pathname.endsWith("/ko");
+                if (lang === "ko" && !isSubdir) {{
+                    let newPath = window.location.pathname;
+                    if (!newPath.endsWith("/")) newPath += "/";
+                    newPath += "ko/";
+                    window.history.pushState({{ lang: "ko" }}, "", newPath + window.location.search);
+                }} else if (lang === "en" && isSubdir) {{
+                    const newPath = window.location.pathname.replace(/\/ko\/?$/, "/");
+                    window.history.pushState({{ lang: "en" }}, "", newPath + window.location.search);
+                }}
+            }}
+        }}
+
+        // Handle browser back/forward navigation
+        window.addEventListener("popstate", (e) => {{
+            const isSubdir = window.location.pathname.endsWith("/ko/") || window.location.pathname.endsWith("/ko");
+            const targetLang = (e.state && e.state.lang) || (isSubdir ? "ko" : "en");
+            if (targetLang !== currentLang) {{
+                switchLanguage(targetLang, false);
+            }}
+        }});
+
+        // Initial setup
+        if (currentLang !== INITIAL_DEFAULT_LANG) {{
+            switchLanguage(currentLang, false);
+        }} else {{
+            populateGroupFilter();
+            renderGrid();
+        }}
     </script>
 </body>
 </html>
 """
-    
-    import os
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    output_path = os.path.join(script_dir, "index.html")
+
+def generate_calendar_html():
+    print("🔄 Loading bookings to generate bilingual calendar view...")
     try:
-        with open(output_path, "w", encoding="utf-8") as f:
-            f.write(html_content)
-        print("✨ Successfully generated calendar view at index.html!")
-        return True
+        rows = sheets_client.get_all_rows()
     except Exception as e:
-        print(f"❌ Error writing calendar HTML: {e}")
+        print(f"❌ Error loading sheet: {e}")
         return False
+        
+    events = overlap_detector.load_events_from_rows(rows)
+    translations = load_translations()
+    
+    all_intervals = []
+    for ev in events:
+        try:
+            all_intervals.extend(ev.get_intervals())
+        except Exception as e:
+            print(f"Warning: Failed to expand '{ev.name}' during calendar generation: {e}")
+            
+    database = {}
+    for room, start_dt, end_dt, group, name in all_intervals:
+        y, m, d = start_dt.year, start_dt.month, start_dt.day
+        
+        database.setdefault(y, {}).setdefault(m, {}).setdefault(d, {}).setdefault(room, [])
+        
+        time_str = f"{start_dt.strftime('%-I:%M %p')} - {end_dt.strftime('%-I:%M %p')}"
+        time_ko = format_korean_time(start_dt, end_dt)
+        
+        database[y][m][d][room].append({
+            "group": group,
+            "group_ko": translate_group(group, translations),
+            "event": name,
+            "event_ko": translate_event(name, group, translations),
+            "time": time_str,
+            "time_ko": time_ko,
+            "start_time_sort": start_dt.strftime('%H:%M')
+        })
+        
+    for y in database:
+        for m in database[y]:
+            for d in database[y][m]:
+                for room in database[y][m][d]:
+                    database[y][m][d][room].sort(key=lambda b: b["start_time_sort"])
+                    
+    monthly_grids = []
+    
+    for year, month, month_name in MONTHS_LIST:
+        num_days = calendar.monthrange(year, month)[1]
+        days_data = []
+        
+        for d in range(1, num_days + 1):
+            curr_date = date(year, month, d)
+            weekday_name = curr_date.strftime("%a")
+            weekday_ko = translations.get("weekdays", {}).get(weekday_name, weekday_name)
+            is_sunday = curr_date.weekday() == 6
+            is_saturday = curr_date.weekday() == 5
+            
+            day_bookings = {}
+            for room in FACILITIES:
+                day_bookings[room] = database.get(year, {}).get(month, {}).get(d, {}).get(room, [])
+                
+            days_data.append({
+                "day": d,
+                "weekday": weekday_name,
+                "weekday_ko": weekday_ko,
+                "is_sunday": is_sunday,
+                "is_saturday": is_saturday,
+                "bookings": day_bookings
+            })
+            
+        month_name_ko = translations.get("months", {}).get(month_name, month_name)
+        monthly_grids.append({
+            "key": f"{year}-{month}",
+            "name": month_name,
+            "name_ko": month_name_ko,
+            "days": days_data
+        })
+        
+    # 1. Generate English root index.html
+    html_en = render_html_page(monthly_grids, translations, default_lang="en", is_ko_subdir=False)
+    output_en = os.path.join(SCRIPT_DIR, "index.html")
+    try:
+        with open(output_en, "w", encoding="utf-8") as f:
+            f.write(html_en)
+        print("✨ Successfully generated English calendar view at index.html")
+    except Exception as e:
+        print(f"❌ Error writing index.html: {e}")
+        return False
+        
+    # 2. Generate Korean dedicated ko/index.html
+    ko_dir = os.path.join(SCRIPT_DIR, "ko")
+    os.makedirs(ko_dir, exist_ok=True)
+    html_ko = render_html_page(monthly_grids, translations, default_lang="ko", is_ko_subdir=True)
+    output_ko = os.path.join(ko_dir, "index.html")
+    try:
+        with open(output_ko, "w", encoding="utf-8") as f:
+            f.write(html_ko)
+        print("✨ Successfully generated Korean dedicated calendar view at ko/index.html")
+    except Exception as e:
+        print(f"❌ Error writing ko/index.html: {e}")
+        return False
+
+    return True
 
 if __name__ == "__main__":
     generate_calendar_html()
