@@ -1,8 +1,8 @@
 {
   "ui": {
     "en": {
-      "title": "TVKCC Facility Reservation Requests (NOT FINAL) (2026 - 2027)",
-      "heading": "TVKCC Facility Reservation Requests (NOT FINAL)",
+      "title": "TVKCC Facility Reservation Requests (2026 - 2027)",
+      "heading": "TVKCC Facility Reservation Requests",
       "subtitle": "Facility Schedule Planning Year: 8/2026 - 7/2027",
       "search_placeholder": "🔍 Search by Event...",
       "all_groups": "👥 All Groups",
@@ -11,8 +11,8 @@
       "switch_lang_target": "ko"
     },
     "ko": {
-      "title": "TVKCC 본당 시설 예약 현황 (가안) (2026 - 2027)",
-      "heading": "TVKCC 본당 시설 예약 현황 (가안)",
+      "title": "TVKCC 본당 시설 예약 현황 (2026 - 2027)",
+      "heading": "TVKCC 본당 시설 예약 현황",
       "subtitle": "본당 시설 일정 계획 연도: 2026년 8월 - 2027년 7월",
       "search_placeholder": "🔍 이벤트 검색...",
       "all_groups": "👥 전체 단체",

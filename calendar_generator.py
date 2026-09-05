@@ -507,7 +507,7 @@ def render_html_page(monthly_grids, translations, default_lang="en", is_ko_subdi
     <!-- Glassmorphic Header -->
     <header>
         <div class="brand">
-            <h1 id="pageHeading">{ui.get('heading', 'TVKCC Facility Reservation Requests (NOT FINAL)')}</h1>
+            <h1 id="pageHeading">{ui.get('heading', 'TVKCC Facility Reservation Requests')}</h1>
             <div class="subtitle" id="pageSubtitle">{ui.get('subtitle', 'Facility Schedule Planning Year: 8/2026 - 7/2027')}</div>
         </div>
         <div class="header-controls">
