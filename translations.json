@@ -8,7 +8,13 @@
       "all_groups": "👥 All Groups",
       "day_header": "Day",
       "switch_lang_label": "한국어",
-      "switch_lang_target": "ko"
+      "switch_lang_target": "ko",
+      "view_agenda": "📋 Agenda",
+      "view_grid": "⊞ Grid",
+      "all_rooms": "All Facilities",
+      "filter_by_room": "Filter Room:",
+      "no_events_day": "No reservations scheduled",
+      "no_matching_events": "No matching reservations found"
     },
     "ko": {
       "title": "TVKCC 본당 시설 예약 현황 (2026 - 2027)",
@@ -18,7 +24,13 @@
       "all_groups": "👥 전체 단체",
       "day_header": "일자",
       "switch_lang_label": "English",
-      "switch_lang_target": "en"
+      "switch_lang_target": "en",
+      "view_agenda": "📋 일정 목록",
+      "view_grid": "⊞ 그리드",
+      "all_rooms": "전체 장소",
+      "filter_by_room": "장소별 보기:",
+      "no_events_day": "예약된 일정이 없습니다",
+      "no_matching_events": "일치하는 예약이 없습니다"
     }
   },
   "facilities": {

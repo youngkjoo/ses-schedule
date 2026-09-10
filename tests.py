@@ -187,5 +187,31 @@ class TestSchedulerEngine(unittest.TestCase):
             self.assertIn('<html lang="ko">', ko_html)
             self.assertIn('class="lang-btn active" id="langBtnKo"', ko_html)
 
+    def test_responsive_calendar_generation(self):
+        from responsive_calendar_generator import generate_responsive_calendar_html
+        import os
+
+        result = generate_responsive_calendar_html()
+        self.assertTrue(result)
+        self.assertTrue(os.path.exists("responsive/index.html"))
+        self.assertTrue(os.path.exists("responsive/ko/index.html"))
+
+        with open("responsive/index.html", "r", encoding="utf-8") as f:
+            en_html = f.read()
+            self.assertIn('<html lang="en">', en_html)
+            self.assertIn('id="viewBtnAgenda"', en_html)
+            self.assertIn('id="viewBtnGrid"', en_html)
+            self.assertIn('id="agendaView"', en_html)
+            self.assertIn('id="gridView"', en_html)
+            self.assertIn('viewport-fit=cover', en_html)
+
+        with open("responsive/ko/index.html", "r", encoding="utf-8") as f:
+            ko_html = f.read()
+            self.assertIn('<html lang="ko">', ko_html)
+            self.assertIn('id="viewBtnAgenda"', ko_html)
+            self.assertIn('id="viewBtnGrid"', ko_html)
+            self.assertIn('id="agendaView"', ko_html)
+            self.assertIn('id="gridView"', ko_html)
+
 if __name__ == "__main__":
     unittest.main()
