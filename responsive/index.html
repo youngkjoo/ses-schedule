@@ -190,7 +190,7 @@
             gap: 2px;
         }
 
-        .seg-btn {
+        .seg-btn, .lang-btn {
             background: transparent;
             border: none;
             color: var(--text-muted);
@@ -207,11 +207,11 @@
             white-space: nowrap;
         }
 
-        .seg-btn:hover {
+        .seg-btn:hover, .lang-btn:hover {
             color: var(--text-color);
         }
 
-        .seg-btn.active {
+        .seg-btn.active, .lang-btn.active {
             background: var(--primary-gradient);
             color: #ffffff;
             box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);
@@ -779,8 +779,8 @@
                 
                 <!-- Language Switcher -->
                 <div class="segmented-control" role="group" aria-label="Language Switcher">
-                    <button class="seg-btn active" id="langBtnEn" onclick="switchLanguage('en')">EN</button>
-                    <button class="seg-btn " id="langBtnKo" onclick="switchLanguage('ko')">한국어</button>
+                    <button class="lang-btn active" id="langBtnEn" onclick="switchLanguage('en')">EN</button>
+                    <button class="lang-btn " id="langBtnKo" onclick="switchLanguage('ko')">한국어</button>
                 </div>
             </div>
 
@@ -1290,16 +1290,16 @@
             populateGroupFilter();
             renderCurrentViews();
             
-            // Dynamic URL synchronization for /responsive/ and /responsive/ko/
+            // Dynamic URL synchronization for / and /ko/ (or /responsive/ and /responsive/ko/)
             if (updateUrl && window.location.protocol.startsWith("http")) {
-                const isSubdir = window.location.pathname.endsWith("/ko/") || window.location.pathname.endsWith("/ko");
+                const isSubdir = /\/ko(\/index\.html|\/)?$/.test(window.location.pathname);
                 if (lang === "ko" && !isSubdir) {
-                    let newPath = window.location.pathname;
+                    let newPath = window.location.pathname.replace(/(index\.html)?$/, "");
                     if (!newPath.endsWith("/")) newPath += "/";
                     newPath += "ko/";
                     window.history.pushState({ lang: "ko" }, "", newPath + window.location.search);
                 } else if (lang === "en" && isSubdir) {
-                    const newPath = window.location.pathname.replace(/\/ko\/?$/, "/");
+                    let newPath = window.location.pathname.replace(/\/ko(\/index\.html|\/)?$/, "/");
                     window.history.pushState({ lang: "en" }, "", newPath + window.location.search);
                 }
             }
@@ -1307,7 +1307,7 @@
 
         // Handle browser back/forward buttons
         window.addEventListener("popstate", (e) => {
-            const isSubdir = window.location.pathname.endsWith("/ko/") || window.location.pathname.endsWith("/ko");
+            const isSubdir = /\/ko(\/index\.html|\/)?$/.test(window.location.pathname);
             const targetLang = (e.state && e.state.lang) || (isSubdir ? "ko" : "en");
             if (targetLang !== currentLang) {
                 switchLanguage(targetLang, false);
