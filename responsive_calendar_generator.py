@@ -97,6 +97,17 @@ def render_responsive_html(monthly_grids, translations, default_lang="en", is_ko
         room_chips_html.append(f'<button class="room-filter-chip" data-room="{room}" onclick="selectRoomFilter(\'{room}\')">{r_label}</button>')
     room_chips_str = "".join(room_chips_html)
 
+    # Determine initial month key matching today's date
+    today_dt = date.today()
+    candidate_key = f"{today_dt.year}-{today_dt.month}"
+    available_keys = [m["key"] for m in monthly_grids]
+    if candidate_key in available_keys:
+        initial_month_key = candidate_key
+    elif today_dt < date(2026, 8, 1):
+        initial_month_key = available_keys[0]
+    else:
+        initial_month_key = available_keys[-1]
+
     return f"""<!DOCTYPE html>
 <html lang="{default_lang}">
 <head>
@@ -458,6 +469,37 @@ def render_responsive_html(monthly_grids, translations, default_lang="en", is_ko
 
         .agenda-day-card.saturday {{
             border-top: 3px solid #3b82f6;
+        }}
+
+        .agenda-day-card.today {{
+            border: 2px solid #818cf8;
+            box-shadow: 0 0 24px rgba(99, 102, 241, 0.4);
+            position: relative;
+        }}
+
+        .today-badge {{
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: #ffffff;
+            font-size: 0.68rem;
+            font-weight: 700;
+            padding: 0.15rem 0.55rem;
+            border-radius: 100px;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+            display: inline-flex;
+            align-items: center;
+        }}
+
+        tr.today {{
+            background-color: rgba(99, 102, 241, 0.12) !important;
+        }}
+
+        tr.today td:first-child {{
+            background-color: #1e2842 !important;
+            border-left: 4px solid #818cf8;
+            box-shadow: inset 0 0 10px rgba(99, 102, 241, 0.3);
+            color: #a5b4fc !important;
         }}
 
         .agenda-day-header {{
@@ -928,9 +970,24 @@ def render_responsive_html(monthly_grids, translations, default_lang="en", is_ko
             return window.innerWidth < 768 ? "agenda" : "grid";
         }}
 
+        // Resolve Initial Month: Today's Month if within planning year (8/2026 - 7/2027)
+        function resolveInitialMonthKey() {{
+            const today = new Date();
+            const y = today.getFullYear();
+            const m = today.getMonth() + 1;
+            const candidateKey = `${{y}}-${{m}}`;
+            if (calendarData.some(month => month.key === candidateKey)) {{
+                return candidateKey;
+            }}
+            if (y < 2026 || (y === 2026 && m < 8)) {{
+                return calendarData[0].key;
+            }}
+            return calendarData[calendarData.length - 1].key;
+        }}
+
         let currentLang = resolveInitialLanguage();
         let currentView = resolveInitialView();
-        let activeMonthKey = "{monthly_grids[0]['key']}";
+        let activeMonthKey = resolveInitialMonthKey();
         let selectedRoomFilter = "all";
 
         // Render Month Navigation Tab Buttons
@@ -950,6 +1007,16 @@ def render_responsive_html(monthly_grids, translations, default_lang="en", is_ko
                 tab.classList.toggle("active", tab.id === `monthTab_${{monthKey}}`);
             }});
             renderCurrentViews();
+            
+            const activeTab = document.getElementById(`monthTab_${{monthKey}}`);
+            if (activeTab) {{
+                activeTab.scrollIntoView({{ inline: "center", block: "nearest", behavior: "smooth" }});
+            }}
+            
+            const today = new Date();
+            if (monthKey === `${{today.getFullYear()}}-${{today.getMonth() + 1}}`) {{
+                scrollToToday(true);
+            }}
         }}
 
         // View Mode Switcher: Agenda vs Grid
@@ -1004,6 +1071,12 @@ def render_responsive_html(monthly_grids, translations, default_lang="en", is_ko
             if (!monthData) return;
             
             let totalEventsRendered = 0;
+            const todayObj = new Date();
+            const todayY = todayObj.getFullYear();
+            const todayM = todayObj.getMonth() + 1;
+            const todayD = todayObj.getDate();
+            const isTodayMonth = (activeMonthKey === `${{todayY}}-${{todayM}}`);
+            const todayLabel = (translations.ui && translations.ui[currentLang] && translations.ui[currentLang].today) || "Today";
             
             monthData.days.forEach(day => {{
                 // Collect and sort all bookings for this day chronologically
@@ -1020,9 +1093,11 @@ def render_responsive_html(monthly_grids, translations, default_lang="en", is_ko
                 dayEvents.sort((a, b) => (a.start_time_sort || "").localeCompare(b.start_time_sort || ""));
                 totalEventsRendered += dayEvents.length;
                 
+                const isToday = isTodayMonth && (day.day === todayD);
                 const card = document.createElement("div");
-                card.className = `agenda-day-card ${{day.is_sunday ? 'sunday' : (day.is_saturday ? 'saturday' : '')}}`;
+                card.className = `agenda-day-card ${{day.is_sunday ? 'sunday' : (day.is_saturday ? 'saturday' : '')}} ${{isToday ? 'today' : ''}}`;
                 card.dataset.day = day.day;
+                if (isToday) card.dataset.isToday = "true";
                 
                 const weekdayLabel = currentLang === 'ko' ? (day.weekday_ko || day.weekday) : day.weekday;
                 const countSuffix = currentLang === 'ko' ? '건' : (dayEvents.length === 1 ? 'event' : 'events');
@@ -1059,6 +1134,7 @@ def render_responsive_html(monthly_grids, translations, default_lang="en", is_ko
                         <div class="agenda-day-title">
                             <span class="agenda-day-number">${{day.day}}</span>
                             <span class="agenda-day-weekday">${{weekdayLabel}}</span>
+                            ${{isToday ? `<span class="today-badge">${{todayLabel}}</span>` : ''}}
                         </div>
                         <span class="agenda-count-badge">${{dayEvents.length}} ${{countSuffix}}</span>
                     </div>
@@ -1084,14 +1160,32 @@ def render_responsive_html(monthly_grids, translations, default_lang="en", is_ko
             const monthData = calendarData.find(m => m.key === activeMonthKey);
             if (!monthData) return;
             
+            const todayObj = new Date();
+            const todayY = todayObj.getFullYear();
+            const todayM = todayObj.getMonth() + 1;
+            const todayD = todayObj.getDate();
+            const isTodayMonth = (activeMonthKey === `${{todayY}}-${{todayM}}`);
+            const todayLabel = (translations.ui && translations.ui[currentLang] && translations.ui[currentLang].today) || "Today";
+            
             monthData.days.forEach(day => {{
+                const isToday = isTodayMonth && (day.day === todayD);
                 const row = document.createElement("tr");
-                if (day.is_sunday) row.className = "sunday";
-                else if (day.is_saturday) row.className = "saturday";
+                row.dataset.day = day.day;
+                if (isToday) {{
+                    row.className = "today";
+                }} else if (day.is_sunday) {{
+                    row.className = "sunday";
+                }} else if (day.is_saturday) {{
+                    row.className = "saturday";
+                }}
                 
                 const dayCell = document.createElement("td");
                 const weekdayLabel = currentLang === 'ko' ? (day.weekday_ko || day.weekday) : day.weekday;
-                dayCell.innerHTML = `<div>${{day.day}}</div><div style="font-size: 0.75rem; font-weight: 500; opacity: 0.6">${{weekdayLabel}}</div>`;
+                dayCell.innerHTML = `
+                    <div>${{day.day}}</div>
+                    <div style="font-size: 0.75rem; font-weight: 500; opacity: 0.6">${{weekdayLabel}}</div>
+                    ${{isToday ? `<div style="margin-top: 4px;"><span class="today-badge" style="font-size: 0.62rem; padding: 2px 6px;">${{todayLabel}}</span></div>` : ''}}
+                `;
                 row.appendChild(dayCell);
                 
                 FACILITIES.forEach(room => {{
@@ -1330,6 +1424,41 @@ def render_responsive_html(monthly_grids, translations, default_lang="en", is_ko
             }}
         }});
 
+        // Auto-Scroll to Today's date
+        function scrollToToday(smooth = true) {{
+            const todayObj = new Date();
+            const todayY = todayObj.getFullYear();
+            const todayM = todayObj.getMonth() + 1;
+            const todayD = todayObj.getDate();
+            const isTodayMonth = (activeMonthKey === `${{todayY}}-${{todayM}}`);
+            
+            // Scroll active tab into view in month tabs container
+            const activeTab = document.getElementById(`monthTab_${{activeMonthKey}}`);
+            if (activeTab) {{
+                activeTab.scrollIntoView({{ inline: "center", block: "nearest", behavior: smooth ? "smooth" : "auto" }});
+            }}
+            
+            if (!isTodayMonth) return;
+            
+            if (currentView === "agenda") {{
+                const todayCard = document.querySelector(`.agenda-day-card.today`);
+                if (todayCard) {{
+                    todayCard.scrollIntoView({{ behavior: smooth ? "smooth" : "auto", block: "center" }});
+                }} else {{
+                    const cards = Array.from(document.querySelectorAll(".agenda-day-card"));
+                    const upcoming = cards.find(c => parseInt(c.dataset.day, 10) >= todayD);
+                    if (upcoming) {{
+                        upcoming.scrollIntoView({{ behavior: smooth ? "smooth" : "auto", block: "center" }});
+                    }}
+                }}
+            }} else {{
+                const todayRow = document.querySelector(`tr.today`);
+                if (todayRow) {{
+                    todayRow.scrollIntoView({{ behavior: smooth ? "smooth" : "auto", block: "center" }});
+                }}
+            }}
+        }}
+
         // Initialization
         populateGroupFilter();
         setViewMode(currentView);
@@ -1338,6 +1467,11 @@ def render_responsive_html(monthly_grids, translations, default_lang="en", is_ko
         }} else {{
             renderCurrentViews();
         }}
+
+        // Auto-focus on today's date upon page load
+        setTimeout(() => {{
+            scrollToToday(false);
+        }}, 120);
     </script>
 </body>
 </html>

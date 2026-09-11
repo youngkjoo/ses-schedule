@@ -14,7 +14,8 @@
       "all_rooms": "All Facilities",
       "filter_by_room": "Filter Room:",
       "no_events_day": "No reservations scheduled",
-      "no_matching_events": "No matching reservations found"
+      "no_matching_events": "No matching reservations found",
+      "today": "Today"
     },
     "ko": {
       "title": "TVKCC 본당 시설 예약 현황 (2026 - 2027)",
@@ -30,7 +31,8 @@
       "all_rooms": "전체 장소",
       "filter_by_room": "장소별 보기:",
       "no_events_day": "예약된 일정이 없습니다",
-      "no_matching_events": "일치하는 예약이 없습니다"
+      "no_matching_events": "일치하는 예약이 없습니다",
+      "today": "오늘"
     }
   },
   "facilities": {
